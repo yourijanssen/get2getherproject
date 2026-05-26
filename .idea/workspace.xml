@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9da82a59-5575-4628-8985-de66d0b60ba4" name="Changes" comment="added a proper website and requests from client with the images given." />
+    <list default="true" id="9da82a59-5575-4628-8985-de66d0b60ba4" name="Changes" comment="make vercel automatically upload">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/site-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/site-header.tsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -98,7 +101,7 @@
       <option name="presentableId" value="Default" />
       <updated>1779788376148</updated>
       <workItem from="1779788377164" duration="1899000" />
-      <workItem from="1779791058172" duration="1004000" />
+      <workItem from="1779791058172" duration="2036000" />
     </task>
     <task id="LOCAL-00001" summary="project basic nextjs setup">
       <option name="closed" value="true" />
@@ -124,7 +127,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779795021920</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="make vercel automatically upload">
+      <option name="closed" value="true" />
+      <created>1779795379317</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1779795379317</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -133,6 +144,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="project basic nextjs setup" />
     <MESSAGE value="added a proper website and requests from client with the images given." />
-    <option name="LAST_COMMIT_MESSAGE" value="added a proper website and requests from client with the images given." />
+    <MESSAGE value="make vercel automatically upload" />
+    <option name="LAST_COMMIT_MESSAGE" value="make vercel automatically upload" />
   </component>
 </project>
