@@ -1,5 +1,4 @@
-import { existsSync } from "node:fs";
-import { DatabaseSync } from "node:sqlite";
+import { neon } from "@neondatabase/serverless";
 
 export type DiyProduct = {
   id: string;
@@ -15,7 +14,9 @@ export type DiyProduct = {
   sortOrder: number;
 };
 
-type ProductRow = Omit<DiyProduct, "titleEn" | "titleEl" | "descriptionEn" | "descriptionEl" | "priceCents" | "stockStatus" | "imageUrl" | "isActive" | "sortOrder"> & {
+type ProductRow = {
+  id: string;
+  slug: string;
   title_en: string;
   title_el: string;
   description_en: string;
@@ -23,14 +24,9 @@ type ProductRow = Omit<DiyProduct, "titleEn" | "titleEl" | "descriptionEn" | "de
   price_cents: number;
   stock_status: DiyProduct["stockStatus"];
   image_url: string | null;
-  is_active: number;
+  is_active: boolean;
   sort_order: number;
 };
-
-// Resolves the durable SQLite location shared by public product reads and the admin panel.
-export function databasePath() {
-  return process.env.GET2GETHER_DATABASE_PATH || "./data/get2gether.sqlite";
-}
 
 function mapProduct(row: ProductRow): DiyProduct {
   return {
@@ -43,32 +39,25 @@ function mapProduct(row: ProductRow): DiyProduct {
     priceCents: row.price_cents,
     stockStatus: row.stock_status,
     imageUrl: row.image_url,
-    isActive: row.is_active === 1,
+    isActive: row.is_active,
     sortOrder: row.sort_order,
   };
 }
 
-export function getDiyProducts(includeInactive = false): DiyProduct[] {
-  const path = databasePath();
-  if (!existsSync(path)) return [];
-  const db = new DatabaseSync(path, { readOnly: true });
-  try {
-    const clause = includeInactive ? "" : "WHERE is_active = 1";
-    return (
-      db
-        .prepare(
-          `SELECT id, slug, title_en, title_el, description_en, description_el, price_cents, stock_status, image_url, is_active, sort_order
-           FROM diy_products ${clause} ORDER BY sort_order, created_at DESC`,
-        )
-        .all() as ProductRow[]
-    ).map(mapProduct);
-  } catch {
-    return [];
-  } finally {
-    db.close();
-  }
+// Creates the Neon query client only when a request needs product data.
+export function getProductSql() {
+  const databaseUrl = process.env.DATABASE_URL;
+  return databaseUrl ? neon(databaseUrl) : null;
 }
 
-export function openProductDatabase() {
-  return new DatabaseSync(databasePath());
+// Reads public or manager-visible DIY products from the durable Postgres database.
+export async function getDiyProducts(includeInactive = false): Promise<DiyProduct[]> {
+  const sql = getProductSql();
+  if (!sql) return [];
+  const rows = includeInactive
+    ? await sql`SELECT id, slug, title_en, title_el, description_en, description_el, price_cents, stock_status, image_url, is_active, sort_order
+        FROM diy_products ORDER BY sort_order, created_at DESC`
+    : await sql`SELECT id, slug, title_en, title_el, description_en, description_el, price_cents, stock_status, image_url, is_active, sort_order
+        FROM diy_products WHERE is_active = TRUE ORDER BY sort_order, created_at DESC`;
+  return (rows as ProductRow[]).map(mapProduct);
 }

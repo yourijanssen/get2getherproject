@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   if (!(await isAdmin())) return <AdminLogin />;
-  return <DiyAdmin products={getDiyProducts(true)} />;
+  return <DiyAdmin products={await getDiyProducts(true)} />;
 }

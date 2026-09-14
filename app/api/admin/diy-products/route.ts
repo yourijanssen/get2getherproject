@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { isAdmin } from "@/lib/admin-auth";
-import { getDiyProducts, openProductDatabase } from "@/lib/diy-products";
+import { getDiyProducts, getProductSql } from "@/lib/diy-products";
 
 export const runtime = "nodejs";
 
@@ -51,23 +51,23 @@ function cleanProduct(input: ProductInput) {
 
 export async function GET() {
   if (!(await isAdmin())) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  return Response.json({ products: getDiyProducts(true) });
+  return Response.json({ products: await getDiyProducts(true) });
 }
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const product = cleanProduct(await request.json().catch(() => ({})));
   if (!product) return Response.json({ error: "Invalid product" }, { status: 400 });
-  const db = openProductDatabase();
+  const sql = getProductSql();
+  if (!sql) return Response.json({ error: "Product database is not configured" }, { status: 503 });
   try {
     const id = randomUUID();
-    db.prepare(`INSERT INTO diy_products (id, slug, title_en, title_el, description_en, description_el, price_cents, stock_status, image_url, is_active, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, product.slug, product.titleEn, product.titleEl, product.descriptionEn, product.descriptionEl, product.priceCents, product.stockStatus, product.imageUrl, Number(product.isActive), product.sortOrder);
+    await sql`INSERT INTO diy_products (id, slug, title_en, title_el, description_en, description_el, price_cents, stock_status, image_url, is_active, sort_order)
+      VALUES (${id}, ${product.slug}, ${product.titleEn}, ${product.titleEl}, ${product.descriptionEn}, ${product.descriptionEl}, ${product.priceCents}, ${product.stockStatus}, ${product.imageUrl}, ${product.isActive}, ${product.sortOrder})`;
     return Response.json({ id }, { status: 201 });
   } catch {
     return Response.json({ error: "Product could not be saved" }, { status: 409 });
-  } finally { db.close(); }
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -77,11 +77,10 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Invalid product" }, { status: 400 });
   const product = cleanProduct(input);
   if (!product) return Response.json({ error: "Invalid product" }, { status: 400 });
-  const db = openProductDatabase();
+  const sql = getProductSql();
+  if (!sql) return Response.json({ error: "Product database is not configured" }, { status: 503 });
   try {
-    db.prepare(`UPDATE diy_products SET slug=?, title_en=?, title_el=?, description_en=?, description_el=?, price_cents=?, stock_status=?, image_url=?, is_active=?, sort_order=?, updated_at=strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id=?`)
-      .run(product.slug, product.titleEn, product.titleEl, product.descriptionEn, product.descriptionEl, product.priceCents, product.stockStatus, product.imageUrl, Number(product.isActive), product.sortOrder, input.id);
+    await sql`UPDATE diy_products SET slug = ${product.slug}, title_en = ${product.titleEn}, title_el = ${product.titleEl}, description_en = ${product.descriptionEn}, description_el = ${product.descriptionEl}, price_cents = ${product.priceCents}, stock_status = ${product.stockStatus}, image_url = ${product.imageUrl}, is_active = ${product.isActive}, sort_order = ${product.sortOrder}, updated_at = NOW() WHERE id = ${input.id}`;
     return Response.json({ saved: true });
   } catch { return Response.json({ error: "Product could not be saved" }, { status: 409 }); }
-  finally { db.close(); }
 }

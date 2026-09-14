@@ -42,5 +42,6 @@ export default async function SitePage({
     notFound();
   }
 
-  return <ExperienceSite language={language} initialRoute={page} diyProducts={page === "diy-kits" ? getDiyProducts() : []} />;
+  const diyProducts = page === "diy-kits" ? await getDiyProducts() : [];
+  return <ExperienceSite language={language} initialRoute={page} diyProducts={diyProducts} />;
 }
