@@ -421,20 +421,29 @@ export function ExperienceSite({
           </section>
         )}
         {route === "contact" && (
-          <section className="page-section contact-section page-width">
-            <header className="page-heading">
+          <section className="contact-simple page-width">
+            <header className="contact-simple-intro">
+              <p className="contact-simple-kicker">Get2Gether Project</p>
               <h1>{t.contactTitle}</h1>
               <p>{t.contactBody}</p>
-              <div className="contact-links">
-                <a href="mailto:get2getherproject@gmail.com">
-                  <span>{t.contactEmail}</span> get2getherproject@gmail.com
-                </a>
-                <a href="tel:+306982151046">
-                  <span>{t.contactPhone}</span> +30 698 215 1046
-                </a>
-              </div>
             </header>
-            <ExperienceForm language={language} kind="inquiry" />
+            <div className="contact-simple-grid">
+              <a className="contact-simple-card" href="mailto:get2getherproject@gmail.com">
+                <span>{t.contactEmail}</span>
+                <strong>get2getherproject@gmail.com</strong>
+              </a>
+              <a className="contact-simple-card" href="tel:+306982151046">
+                <span>{t.contactPhone}</span>
+                <strong>+30 698 215 1046</strong>
+              </a>
+              <div className="contact-simple-card contact-simple-social">
+                <span>{t.followUs}</span>
+                <div>
+                  <a href="https://www.instagram.com/get2getherproject/" target="_blank" rel="noreferrer">Instagram</a>
+                  <a href="https://www.tiktok.com/@get2getherproject" target="_blank" rel="noreferrer">TikTok</a>
+                </div>
+              </div>
+            </div>
           </section>
         )}
         {(route === "gift-card" || route === "loyalty-card") && (
