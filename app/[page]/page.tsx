@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ExperienceSite } from "@/components/experience-site";
 import { resolveLanguage } from "@/lib/language";
+import { getDiyProducts } from "@/lib/diy-products";
 import { sitePages, type SitePageKey } from "@/lib/page-content";
 
 type SitePageProps = {
@@ -10,6 +11,7 @@ type SitePageProps = {
 };
 
 const pageKeys = Object.keys(sitePages.el) as SitePageKey[];
+export const dynamic = "force-dynamic";
 
 // Creates metadata for each localized content page.
 export async function generateMetadata({
@@ -40,5 +42,5 @@ export default async function SitePage({
     notFound();
   }
 
-  return <ExperienceSite language={language} initialRoute={page} />;
+  return <ExperienceSite language={language} initialRoute={page} diyProducts={page === "diy-kits" ? getDiyProducts() : []} />;
 }

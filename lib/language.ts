@@ -16,6 +16,8 @@ export const homeContent = {
     intro:
       "Creative experiences for a little escape from everyday life. Make something new, meet your people, and enjoy the moment.",
     switchLabel: "Ελληνικά",
+    languageLabel: "Language",
+    more: "More",
     navigationLabel: "Main navigation",
     menu: "Menu",
     menuLabel: "Open menu",
@@ -62,7 +64,9 @@ export const homeContent = {
     experience: "Your experience",
     name: "Name",
     email: "Email address",
+    contactEmail: "Email",
     phone: "Phone (optional)",
+    contactPhone: "Phone",
     message: "Message",
     submit: "Send request",
     sending: "Sending…",
@@ -125,8 +129,49 @@ export const homeContent = {
     loyaltyTitle: "More moments together",
     loyaltyBody:
       "Ask us about the Get2Gether loyalty card and how your workshop visits can count towards it.",
+    linktreeTitle: "More to discover",
+    linktreeIntro:
+      "Follow along, explore previous creations and find a little extra inspiration.",
+    linktreeLinks: [
+      {
+        title: "Instagram",
+        description: "Follow the latest moments from Get2Gether.",
+        href: "https://www.instagram.com/get2getherproject",
+      },
+      {
+        title: "TikTok",
+        description: "Watch our creative moments in motion.",
+        href: "https://www.tiktok.com/@get2getherproject",
+      },
+      {
+        title: "Instagram channel",
+        description: "Be the first to hear about events, offers and giveaways.",
+        href: "https://www.instagram.com/channel/AbbEyoLPvXZ1BnSj",
+      },
+      {
+        title: "YouTube",
+        description: "Find Get2Gether Project on YouTube.",
+        href: "https://youtube.com/@get2getherproject?sub_confirmation=1",
+      },
+      {
+        title: "Barbie magic",
+        description: "Explore the Barbie creations and inspiration.",
+        href: "https://drive.google.com/drive/folders/14Jd1efKBofBFfCIz4jYw6euXsaG_mOl-?usp=sharing",
+      },
+      {
+        title: "Barbie quiz",
+        description: "Play the nostalgic Barbie movie quiz.",
+        href: "https://create.kahoot.it/share/nostalgic-barbie-movies/4cf574a8-09a8-463f-9229-5be9e11c6a62",
+      },
+      {
+        title: "Get in touch",
+        description: "Find all Get2Gether links and contact Hope Pantou.",
+        href: "https://linktr.ee/get2getherproject",
+      },
+    ],
     footer: "Creative experiences. Real connections.",
     followUs: "Follow us",
+    instagramLabel: "Get2Gether Project on Instagram",
     rights: "All rights reserved.",
     notFound: "This workshop could not be found.",
     workshops: [
@@ -160,6 +205,8 @@ export const homeContent = {
     intro:
       "Δημιουργικές εμπειρίες για μια μικρή απόδραση από την καθημερινότητα. Φτιάξε κάτι νέο, γνώρισε ανθρώπους και απόλαυσε τη στιγμή.",
     switchLabel: "English",
+    languageLabel: "Γλώσσα",
+    more: "Περισσότερα",
     navigationLabel: "Κύρια πλοήγηση",
     menu: "Μενού",
     menuLabel: "Άνοιγμα μενού",
@@ -207,7 +254,9 @@ export const homeContent = {
     experience: "Η εμπειρία σου",
     name: "Όνομα",
     email: "Διεύθυνση email",
+    contactEmail: "Email",
     phone: "Τηλέφωνο (προαιρετικό)",
+    contactPhone: "Τηλέφωνο",
     message: "Μήνυμα",
     submit: "Αποστολή αιτήματος",
     sending: "Αποστολή…",
@@ -270,8 +319,49 @@ export const homeContent = {
     loyaltyTitle: "Περισσότερες στιγμές μαζί",
     loyaltyBody:
       "Ρώτησέ μας για την κάρτα επιβράβευσης Get2Gether και πώς μπορούν να μετρήσουν οι συμμετοχές σου.",
+    linktreeTitle: "Ανακάλυψε περισσότερα",
+    linktreeIntro:
+      "Ακολούθησέ μας, ανακάλυψε προηγούμενες δημιουργίες και βρες λίγη ακόμη έμπνευση.",
+    linktreeLinks: [
+      {
+        title: "Instagram",
+        description: "Ακολούθησε τις πιο πρόσφατες στιγμές του Get2Gether.",
+        href: "https://www.instagram.com/get2getherproject",
+      },
+      {
+        title: "TikTok",
+        description: "Δες τις δημιουργικές μας στιγμές σε κίνηση.",
+        href: "https://www.tiktok.com/@get2getherproject",
+      },
+      {
+        title: "Κανάλι Instagram",
+        description: "Μάθε πρώτη για εκδηλώσεις, προσφορές και διαγωνισμούς.",
+        href: "https://www.instagram.com/channel/AbbEyoLPvXZ1BnSj",
+      },
+      {
+        title: "YouTube",
+        description: "Βρες το Get2Gether Project στο YouTube.",
+        href: "https://youtube.com/@get2getherproject?sub_confirmation=1",
+      },
+      {
+        title: "Barbie magic",
+        description: "Ανακάλυψε τις δημιουργίες και την έμπνευση Barbie.",
+        href: "https://drive.google.com/drive/folders/14Jd1efKBofBFfCIz4jYw6euXsaG_mOl-?usp=sharing",
+      },
+      {
+        title: "Barbie quiz",
+        description: "Παίξε το νοσταλγικό quiz ταινιών Barbie.",
+        href: "https://create.kahoot.it/share/nostalgic-barbie-movies/4cf574a8-09a8-463f-9229-5be9e11c6a62",
+      },
+      {
+        title: "Επικοινωνία",
+        description: "Βρες όλους τους συνδέσμους Get2Gether και επικοινώνησε με την Hope Pantou.",
+        href: "https://linktr.ee/get2getherproject",
+      },
+    ],
     footer: "Δημιουργικές εμπειρίες. Αληθινές σχέσεις.",
     followUs: "Ακολουθήστε μας",
+    instagramLabel: "Get2Gether Project στο Instagram",
     rights: "Με επιφύλαξη παντός δικαιώματος.",
     notFound: "Αυτό το εργαστήριο δεν βρέθηκε.",
     workshops: [

@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Arrow, ExperienceForm } from "@/components/experience-form";
 import { sitePages, type SitePageKey } from "@/lib/page-content";
 import { homeContent, type Language } from "@/lib/language";
+import type { DiyProduct } from "@/lib/diy-products";
 import { heroImages, serviceImages, workshops } from "@/lib/workshops";
 import flowerArt from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 29.png";
 
@@ -15,9 +16,11 @@ type Modal = { topic: string; detailed: boolean } | null;
 export function ExperienceSite({
   language,
   initialRoute = "home",
+  diyProducts = [],
 }: {
   language: Language;
   initialRoute?: string;
+  diyProducts?: DiyProduct[];
 }) {
   const t = homeContent[language];
   const [route, setRoute] = useState(initialRoute);
@@ -117,12 +120,12 @@ export function ExperienceSite({
                   </h1>
                   <p>{t.intro}</p>
                   <div className="actions">
-                    <a className="button" href={`/?lang=${language}#events`}>
+                    <a className="button" href={`/events?lang=${language}`}>
                       {t.heroCta}
                     </a>
                     <a
                       className="button button-outline"
-                      href={`/?lang=${language}#about`}
+                      href={`/about?lang=${language}`}
                     >
                       {t.storyCta}
                     </a>
@@ -197,7 +200,7 @@ export function ExperienceSite({
                   <a
                     key={name}
                     className="service-card"
-                    href={`/?lang=${language}${["#events", "#private-events", "#gift-card", "#loyalty-card"][i]}`}
+                    href={`${["/events", "/contact", "/extras", "/extras"][i]}?lang=${language}`}
                   >
                     <div className="service-image">
                       <Image
@@ -224,7 +227,7 @@ export function ExperienceSite({
                 </span>
                 <h2>{t.togetherTitle}</h2>
                 <p>{t.togetherBody}</p>
-                <a className="text-link" href={`/?lang=${language}#about`}>
+                <a className="text-link" href={`/about?lang=${language}`}>
                   {t.storyCta}
                   <Arrow />
                 </a>
@@ -380,7 +383,7 @@ export function ExperienceSite({
                   <h2>{t.curatedTitle}</h2>
                   <p>{t.curatedBody}</p>
                   <a
-                    href={`/?lang=${language}#events`}
+                    href={`/events?lang=${language}`}
                     className="button button-outline"
                   >
                     {t.heroCta}
@@ -409,7 +412,7 @@ export function ExperienceSite({
                 {t.aboutParagraphs.map((p) => (
                   <p key={p}>{p}</p>
                 ))}
-                <a className="button" href={`/?lang=${language}#events`}>
+                <a className="button" href={`/events?lang=${language}`}>
                   {t.heroCta}
                   <Arrow />
                 </a>
@@ -423,8 +426,12 @@ export function ExperienceSite({
               <h1>{t.contactTitle}</h1>
               <p>{t.contactBody}</p>
               <div className="contact-links">
-                <a href="mailto:get2getherproject@gmail.com">get2getherproject@gmail.com</a>
-                <a href="tel:+306982151046">6982151046</a>
+                <a href="mailto:get2getherproject@gmail.com">
+                  <span>{t.contactEmail}</span> get2getherproject@gmail.com
+                </a>
+                <a href="tel:+306982151046">
+                  <span>{t.contactPhone}</span> +30 698 215 1046
+                </a>
               </div>
             </header>
             <ExperienceForm language={language} kind="inquiry" />
@@ -466,6 +473,7 @@ export function ExperienceSite({
             </header>
             <div className="static-page-body">
               <p>{staticPage.body}</p>
+              {route === "diy-kits" && diyProducts.length > 0 && <div className="diy-product-grid">{diyProducts.map((product) => <article className="diy-product-card" key={product.id}><span>{product.stockStatus === "in_stock" ? (language === "el" ? "Διαθέσιμο" : "In stock") : language === "el" ? "Σύντομα διαθέσιμο" : "Coming soon"}</span><h2>{language === "el" ? product.titleEl : product.titleEn}</h2><p>{language === "el" ? product.descriptionEl : product.descriptionEn}</p><strong>€{(product.priceCents / 100).toFixed(2)}</strong></article>)}</div>}
             </div>
           </section>
         )}
@@ -497,6 +505,29 @@ export function ExperienceSite({
                 </article>
               ))}
             </div>
+            <section className="linktree-section">
+              <header className="section-heading">
+                <h2>{t.linktreeTitle}</h2>
+                <p>{t.linktreeIntro}</p>
+              </header>
+              <div className="linktree-grid">
+                {t.linktreeLinks.map((link) => (
+                  <a
+                    className="linktree-card"
+                    href={link.href}
+                    key={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <div>
+                      <h3>{link.title}</h3>
+                      <p>{link.description}</p>
+                    </div>
+                    <Arrow />
+                  </a>
+                ))}
+              </div>
+            </section>
           </section>
         )}
         {!home &&
@@ -513,50 +544,70 @@ export function ExperienceSite({
           ].includes(route) && (
             <section className="page-section page-width">
               <h1>{t.notFound}</h1>
-              <a href={`/?lang=${language}#events`} className="button">
+              <a href={`/events?lang=${language}`} className="button">
                 {t.back}
               </a>
             </section>
           )}
       </main>
       <footer className="site-footer">
-        <div>
+        <div className="footer-content">
+          <section className="footer-identity" aria-label="Get2Gether">
           <a className="footer-brand" href={`/?lang=${language}#home`}>
             Get2Gether
           </a>
           <p>{t.footer}</p>
           <div className="contact-links footer-contact-links">
-            <a href="mailto:get2getherproject@gmail.com">get2getherproject@gmail.com</a>
-            <a href="tel:+306982151046">6982151046</a>
+            <a href="mailto:get2getherproject@gmail.com">
+              <span>{t.contactEmail}</span>
+              get2getherproject@gmail.com
+            </a>
+            <a href="tel:+306982151046">
+              <span>{t.contactPhone}</span>
+              +30 698 215 1046
+            </a>
           </div>
-        </div>
-        <nav aria-label={t.navigationLabel}>
+          </section>
+          <nav className="footer-navigation" aria-label={t.navigationLabel}>
           {t.navItems.map((item) => (
             <a href={`${item.href}?lang=${language}`} key={item.href}>
               {item.label}
             </a>
           ))}
-          <a href={`/?lang=${language}#contact`}>{t.inquire}</a>
-        </nav>
-        <div className="footer-socials">
+          </nav>
+          <section className="footer-socials" aria-label={t.followUs}>
           <span>{t.followUs}</span>
-          <a
-            href="https://www.tiktok.com/@get2getherproject"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Get2Gether Project on TikTok"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M16.6 5.1a5.8 5.8 0 0 1-3.5-3.5h-3v12.1a2.7 2.7 0 1 1-2-2.6V8.1a5.7 5.7 0 1 0 5 5.6V7.6a8.8 8.8 0 0 0 5.2 1.7v-3a5.8 5.8 0 0 1-1.7-1.2Z" />
-            </svg>
-            <span>TikTok</span>
-          </a>
+          <div className="footer-social-links">
+            <a
+              href="https://www.instagram.com/get2getherproject/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label={t.instagramLabel}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm5.25-3.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z" />
+              </svg>
+              <span>Instagram</span>
+            </a>
+            <a
+              href="https://www.tiktok.com/@get2getherproject"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Get2Gether Project on TikTok"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M16.6 5.1a5.8 5.8 0 0 1-3.5-3.5h-3v12.1a2.7 2.7 0 1 1-2-2.6V8.1a5.7 5.7 0 1 0 5 5.6V7.6a8.8 8.8 0 0 0 5.2 1.7v-3a5.8 5.8 0 0 1-1.7-1.2Z" />
+              </svg>
+              <span>TikTok</span>
+            </a>
+          </div>
+          </section>
         </div>
-        <small>
-          © {new Date().getFullYear()} Get2Gether Project.
-          <br />
-          {t.rights}
-        </small>
+        <div className="footer-bottom">
+          <small>
+            © {new Date().getFullYear()} Get2Gether Project. {t.rights}
+          </small>
+        </div>
       </footer>
       <dialog
         ref={dialog}

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/TransferNow-20260526jAAIYA6v/Logo-transparent-cropped.png";
-import { homeContent, languages, type Language } from "@/lib/language";
+import { homeContent, type Language } from "@/lib/language";
 
 // Renders the responsive navigation and keeps the language switch on the current view.
 export function SiteHeader({
@@ -16,6 +16,13 @@ export function SiteHeader({
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
   const content = homeContent[language];
+  const primaryItems = content.navItems.filter(({ href }) =>
+    ["/", "/events", "/diy-kits", "/extras"].includes(href),
+  );
+  const secondaryItems = content.navItems.filter(({ href }) =>
+    ["/about", "/contact"].includes(href),
+  );
+  const currentPath = route === "home" ? "/" : `/${route}`;
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
@@ -29,6 +36,11 @@ export function SiteHeader({
     }
     if (open) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+  useEffect(() => {
+    // Prevents the page behind the expanded navigation from scrolling.
+    document.body.classList.toggle("modal-open", open);
+    return () => document.body.classList.remove("modal-open");
   }, [open]);
   return (
     <header className="site-header">
@@ -59,31 +71,60 @@ export function SiteHeader({
         className={`site-nav${open ? " is-open" : ""}`}
         aria-label={content.navigationLabel}
       >
-        {content.navItems.map((item) => {
-          const page = item.href === "/" ? "home" : item.href.slice(1);
-          const active =
-            route === page || (page === "events" && route.startsWith("event/"));
-          const href = `${item.href}?lang=${language}`;
-          return (
-            <a
-              key={item.href}
-              href={href}
-              className={active ? "is-active" : undefined}
-              aria-current={active ? "page" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </a>
-          );
-        })}
-        <a
-          className="language-link"
-          lang={languages[language].alternate}
-          href={`/?lang=${languages[language].alternate}#${route}`}
-          onClick={() => setOpen(false)}
-        >
-          {content.switchLabel}
-        </a>
+        <div className="nav-link-list nav-primary">
+          {primaryItems.map((item) => {
+            const page = item.href === "/" ? "home" : item.href.slice(1);
+            const active =
+              route === page ||
+              (page === "events" && route.startsWith("event/"));
+            return (
+              <a
+                key={item.href}
+                href={`${item.href}?lang=${language}`}
+                className={active ? "is-active" : undefined}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </a>
+            );
+          })}
+        </div>
+        <div className="nav-link-list nav-secondary">
+          {secondaryItems.map((item) => {
+            const page = item.href.slice(1);
+            const active = route === page;
+            return (
+              <a
+                key={item.href}
+                href={`${item.href}?lang=${language}`}
+                className={active ? "is-active" : undefined}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </a>
+            );
+          })}
+        </div>
+        <div className="language-switch" aria-label={content.languageLabel}>
+          <a
+            href={`${currentPath}?lang=el${route === "home" ? "#home" : ""}`}
+            className={language === "el" ? "is-active" : undefined}
+            aria-current={language === "el" ? "true" : undefined}
+            onClick={() => setOpen(false)}
+          >
+            ελ
+          </a>
+          <a
+            href={`${currentPath}?lang=en${route === "home" ? "#home" : ""}`}
+            className={language === "en" ? "is-active" : undefined}
+            aria-current={language === "en" ? "true" : undefined}
+            onClick={() => setOpen(false)}
+          >
+            en
+          </a>
+        </div>
       </nav>
     </header>
   );
