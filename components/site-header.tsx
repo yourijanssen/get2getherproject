@@ -17,10 +17,10 @@ export function SiteHeader({
   const toggle = useRef<HTMLButtonElement>(null);
   const content = homeContent[language];
   const primaryItems = content.navItems.filter(({ href }) =>
-    ["/", "/events", "/diy-kits", "/extras"].includes(href),
+    ["/", "/events", "/diy-kits"].includes(href),
   );
   const secondaryItems = content.navItems.filter(({ href }) =>
-    ["/about", "/contact"].includes(href),
+    ["/extras", "/about", "/contact"].includes(href),
   );
   const currentPath = route === "home" ? "/" : `/${route}`;
   useEffect(() => {

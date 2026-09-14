@@ -11,6 +11,32 @@ import { heroImages, serviceImages, workshops } from "@/lib/workshops";
 import flowerArt from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 29.png";
 
 type Modal = { topic: string; detailed: boolean } | null;
+type Workshop = (typeof workshops)[number];
+
+// Parses a date-only workshop record at noon UTC so it stays on the intended day in every timezone.
+function workshopDate(date: string) {
+  return new Date(`${date}T12:00:00Z`);
+}
+
+// Produces complete Sunday-first calendar weeks and associates dates with their workshop record.
+function calendarCells(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const firstWeekday = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
+  const daysInMonth = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const cellCount = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: cellCount }, (_, cellIndex) => {
+    const day = cellIndex - firstWeekday + 1;
+    if (day < 1 || day > daysInMonth) return null;
+
+    const date = `${month}-${String(day).padStart(2, "0")}`;
+    return {
+      date,
+      day,
+      workshop: workshops.find((item) => item.date === date) as Workshop | undefined,
+    };
+  });
+}
 
 // Preserves shareable hash routes and browser back/forward navigation, including old section URLs.
 export function ExperienceSite({
@@ -27,6 +53,10 @@ export function ExperienceSite({
   const [slide, setSlide] = useState(0);
   const [detailSlide, setDetailSlide] = useState(0);
   const [modal, setModal] = useState<Modal>(null);
+  const agendaMonths = [
+    ...new Set(workshops.map((workshop) => workshop.date.slice(0, 7))),
+  ].sort();
+  const [agendaMonthIndex, setAgendaMonthIndex] = useState(0);
   const serviceRail = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const main = useRef<HTMLElement>(null);
@@ -99,6 +129,27 @@ export function ExperienceSite({
   );
   const selected = workshops[selectedIndex];
   const selectedText = t.workshops[selectedIndex];
+  const locale = language === "el" ? "el-GR" : "en-GB";
+  const agendaMonth = agendaMonths[agendaMonthIndex];
+  const agendaCells = calendarCells(agendaMonth);
+  const agendaTitle = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(workshopDate(`${agendaMonth}-01`));
+  const weekdayLabels = Array.from({ length: 7 }, (_, day) =>
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(
+      new Date(Date.UTC(2026, 0, 4 + day)),
+    ),
+  );
+  const formatWorkshopDate = (date: string) =>
+    new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(workshopDate(date));
   const staticPage = ["diy-kits", "privacy-policy"].includes(route)
     ? sitePages[language][route as SitePageKey]
     : null;
@@ -248,6 +299,71 @@ export function ExperienceSite({
               <h1>{t.eventsTitle}</h1>
               <p>{t.eventsIntro}</p>
             </header>
+            <section className="agenda" aria-labelledby="agenda-heading">
+              <header className="agenda-header">
+                <div>
+                  <span className="small-label">{t.calendarTitle}</span>
+                  <h2 id="agenda-heading">{agendaTitle}</h2>
+                  <p>{t.calendarIntro}</p>
+                </div>
+                <div className="agenda-controls">
+                  <button
+                    type="button"
+                    onClick={() => setAgendaMonthIndex((index) => index - 1)}
+                    disabled={agendaMonthIndex === 0}
+                    aria-label={t.calendarPreviousMonth}
+                  >
+                    <Arrow reverse />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAgendaMonthIndex((index) => index + 1)}
+                    disabled={agendaMonthIndex === agendaMonths.length - 1}
+                    aria-label={t.calendarNextMonth}
+                  >
+                    <Arrow />
+                  </button>
+                </div>
+              </header>
+              <div className="agenda-scroll">
+                <div className="agenda-weekdays" aria-hidden="true">
+                  {weekdayLabels.map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
+                <div className="agenda-grid">
+                  {agendaCells.map((cell, index) => {
+                    if (!cell) {
+                      return <div className="agenda-day agenda-day-empty" key={index} />;
+                    }
+
+                    const workshopIndex = workshops.findIndex(
+                      (workshop) => workshop.slug === cell.workshop?.slug,
+                    );
+                    const workshopText = t.workshops[workshopIndex];
+
+                    return cell.workshop ? (
+                      <a
+                        className="agenda-day agenda-event"
+                        href={`/?lang=${language}#event/${cell.workshop.slug}`}
+                        key={cell.date}
+                        aria-label={`${formatWorkshopDate(cell.date)}: ${workshopText.title}`}
+                      >
+                        <time dateTime={cell.date}>{cell.day}</time>
+                        <span>{workshopText.title}</span>
+                        <small>
+                          {cell.workshop.startTime}–{cell.workshop.endTime}
+                        </small>
+                      </a>
+                    ) : (
+                      <div className="agenda-day" key={cell.date}>
+                        <time dateTime={cell.date}>{cell.day}</time>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
             <div className="workshop-grid">
               {workshops.map((workshop, i) => (
                 <article className="workshop-card" key={workshop.slug}>
@@ -328,6 +444,18 @@ export function ExperienceSite({
                 <span className="small-label">{t.past}</span>
                 <h1>{selectedText.title}</h1>
                 <p>{selectedText.description}</p>
+                <dl className="event-meta">
+                  <div>
+                    <dt>{t.calendarDate}</dt>
+                    <dd>{formatWorkshopDate(selected.date)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t.calendarTime}</dt>
+                    <dd>
+                      {selected.startTime}–{selected.endTime}
+                    </dd>
+                  </div>
+                </dl>
                 <div className="booking-panel">
                   <p>{t.archiveNote}</p>
                   <button

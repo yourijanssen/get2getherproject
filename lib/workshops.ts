@@ -8,10 +8,34 @@ import loyalty from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 21.png";
 
 // Historical artwork only: these records do not represent bookable inventory.
 export const workshops = [
-  { slug: "swap-together", images: [swap] },
-  { slug: "pipe-cleaner-flowers", images: [flowers] },
-  { slug: "textured-art", images: [texture, plaster] },
-  { slug: "building-together", images: [building] },
+  {
+    slug: "swap-together",
+    date: "2026-04-26",
+    startTime: "18:00",
+    endTime: "21:00",
+    images: [swap],
+  },
+  {
+    slug: "pipe-cleaner-flowers",
+    date: "2026-05-10",
+    startTime: "18:00",
+    endTime: "20:00",
+    images: [flowers],
+  },
+  {
+    slug: "textured-art",
+    date: "2026-05-24",
+    startTime: "18:00",
+    endTime: "20:00",
+    images: [texture, plaster],
+  },
+  {
+    slug: "building-together",
+    date: "2026-03-22",
+    startTime: "12:00",
+    endTime: "14:00",
+    images: [building],
+  },
 ];
 export const serviceImages = [flowers, plaster, gift, loyalty];
 export const heroImages = [building, flowers, texture];
