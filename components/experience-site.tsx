@@ -1,0 +1,601 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { SiteHeader } from "@/components/site-header";
+import { Arrow, ExperienceForm } from "@/components/experience-form";
+import { sitePages, type SitePageKey } from "@/lib/page-content";
+import { homeContent, type Language } from "@/lib/language";
+import { heroImages, serviceImages, workshops } from "@/lib/workshops";
+import flowerArt from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 29.png";
+
+type Modal = { topic: string; detailed: boolean } | null;
+
+// Preserves shareable hash routes and browser back/forward navigation, including old section URLs.
+export function ExperienceSite({
+  language,
+  initialRoute = "home",
+}: {
+  language: Language;
+  initialRoute?: string;
+}) {
+  const t = homeContent[language];
+  const [route, setRoute] = useState(initialRoute);
+  const [slide, setSlide] = useState(0);
+  const [detailSlide, setDetailSlide] = useState(0);
+  const [modal, setModal] = useState<Modal>(null);
+  const serviceRail = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const main = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    // Normalize historical anchor names while retaining bookmarked workshop links.
+    function syncRoute() {
+      const hash = window.location.hash.slice(1) || initialRoute;
+      if (hash === "main-content") {
+        main.current?.focus();
+        return;
+      }
+      const aliases: Record<string, string> = {
+        references: "events",
+        projects: "events",
+        services: "services",
+      };
+      const next = aliases[hash] || hash;
+      setRoute(next);
+      setDetailSlide(0);
+      setModal(null);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    syncRoute();
+    window.addEventListener("hashchange", syncRoute);
+    return () => window.removeEventListener("hashchange", syncRoute);
+  }, [initialRoute]);
+
+  useEffect(() => {
+    if (modal) {
+      dialog.current?.showModal();
+      document.body.classList.add("modal-open");
+    } else {
+      dialog.current?.close();
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [modal]);
+
+  useEffect(() => {
+    const title =
+      route === "home"
+        ? "Get2Gether"
+        : route === "about"
+          ? t.aboutTitle
+          : route === "private-events"
+            ? t.privateTitle
+            : route === "contact"
+              ? t.contactTitle
+              : t.eventsTitle;
+    document.title = `${title}${route === "home" ? "" : " | Get2Gether"}`;
+  }, [route, t]);
+
+  // Scroll one service card at a time, keeping native touch scrolling available.
+  function moveServices(direction: number) {
+    const rail = serviceRail.current;
+    if (rail)
+      rail.scrollBy({
+        left:
+          direction *
+          ((rail.firstElementChild?.getBoundingClientRect().width || 300) + 24),
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      });
+  }
+
+  const selectedIndex = workshops.findIndex(
+    (item) => route === `event/${item.slug}`,
+  );
+  const selected = workshops[selectedIndex];
+  const selectedText = t.workshops[selectedIndex];
+  const staticPage = ["diy-kits", "privacy-policy"].includes(route)
+    ? sitePages[language][route as SitePageKey]
+    : null;
+  const home =
+    route === "home" || route === "services" || route === "main-content";
+
+  return (
+    <>
+      <SiteHeader language={language} route={route} />
+      <main ref={main} id="main-content" lang={language} tabIndex={-1}>
+        {home && (
+          <>
+            {route !== "services" && (
+              <section className="hero-section page-width">
+                <div className="hero-copy">
+                  <h1>
+                    {t.heading}
+                    <em>{t.headingAccent}</em>
+                  </h1>
+                  <p>{t.intro}</p>
+                  <div className="actions">
+                    <a className="button" href={`/?lang=${language}#events`}>
+                      {t.heroCta}
+                    </a>
+                    <a
+                      className="button button-outline"
+                      href={`/?lang=${language}#about`}
+                    >
+                      {t.storyCta}
+                    </a>
+                  </div>
+                </div>
+                <div className="hero-visual">
+                  <span className="sunburst" aria-hidden="true">
+                    ✳
+                  </span>
+                  <div className="hero-frame">
+                    <Image
+                      src={heroImages[slide]}
+                      alt={t.workshops[[3, 1, 2][slide]].title}
+                      priority
+                      sizes="(max-width: 760px) 90vw, 43vw"
+                    />
+                    <div className="image-controls">
+                      <button
+                        onClick={() =>
+                          setSlide(
+                            (slide + heroImages.length - 1) % heroImages.length,
+                          )
+                        }
+                        aria-label={t.previous}
+                      >
+                        <Arrow reverse />
+                      </button>
+                      <span aria-live="polite">
+                        {slide + 1} / {heroImages.length}
+                      </span>
+                      <button
+                        onClick={() =>
+                          setSlide((slide + 1) % heroImages.length)
+                        }
+                        aria-label={t.next}
+                      >
+                        <Arrow />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="hero-inset">
+                    <Image src={serviceImages[1]} alt="" sizes="180px" />
+                  </div>
+                </div>
+              </section>
+            )}
+            <section className="services-section page-width" id="services">
+              <div className="section-heading">
+                <div>
+                  <h2>{t.services}</h2>
+                  <p>{t.servicesIntro}</p>
+                </div>
+                <div className="rail-controls">
+                  <button
+                    className="circle-button"
+                    onClick={() => moveServices(-1)}
+                    aria-label={t.previous}
+                  >
+                    <Arrow reverse />
+                  </button>
+                  <button
+                    className="circle-button"
+                    onClick={() => moveServices(1)}
+                    aria-label={t.next}
+                  >
+                    <Arrow />
+                  </button>
+                </div>
+              </div>
+              <div ref={serviceRail} className="service-rail">
+                {t.serviceNames.map((name, i) => (
+                  <a
+                    key={name}
+                    className="service-card"
+                    href={`/?lang=${language}${["#events", "#private-events", "#gift-card", "#loyalty-card"][i]}`}
+                  >
+                    <div className="service-image">
+                      <Image
+                        src={serviceImages[i]}
+                        alt=""
+                        sizes="(max-width: 760px) 80vw, 30vw"
+                      />
+                    </div>
+                    <div className="service-caption">
+                      <div>
+                        <h3>{name}</h3>
+                        <p>{t.serviceDescriptions[i]}</p>
+                      </div>
+                      <Arrow />
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+            <section className="together-section">
+              <div>
+                <span className="small-star" aria-hidden="true">
+                  ✳
+                </span>
+                <h2>{t.togetherTitle}</h2>
+                <p>{t.togetherBody}</p>
+                <a className="text-link" href={`/?lang=${language}#about`}>
+                  {t.storyCta}
+                  <Arrow />
+                </a>
+              </div>
+            </section>
+            <section className="review-section page-width">
+              <header>
+                <h2>{t.reviewTitle}</h2>
+                <p>{t.reviewIntro}</p>
+              </header>
+              <ExperienceForm language={language} kind="review" />
+            </section>
+          </>
+        )}
+        {route === "events" && (
+          <section className="page-section page-width">
+            <header className="page-heading">
+              <h1>{t.eventsTitle}</h1>
+              <p>{t.eventsIntro}</p>
+            </header>
+            <div className="workshop-grid">
+              {workshops.map((workshop, i) => (
+                <article className="workshop-card" key={workshop.slug}>
+                  <a
+                    href={`/?lang=${language}#event/${workshop.slug}`}
+                    className="workshop-image"
+                  >
+                    <Image
+                      src={workshop.images[0]}
+                      alt={t.workshops[i].title}
+                      sizes="(max-width: 760px) 90vw, 30vw"
+                    />
+                  </a>
+                  <div className="workshop-copy">
+                    <span className="small-label">{t.past}</span>
+                    <h2>{t.workshops[i].title}</h2>
+                    <a
+                      className="text-link"
+                      href={`/?lang=${language}#event/${workshop.slug}`}
+                    >
+                      {t.details}
+                      <Arrow />
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="announcement">
+              <div>
+                <h2>{t.upcoming}</h2>
+                <p>{t.upcomingBody}</p>
+              </div>
+              <button
+                className="button"
+                onClick={() =>
+                  setModal({ topic: t.eventsTitle, detailed: false })
+                }
+              >
+                {t.interest}
+                <Arrow />
+              </button>
+            </div>
+          </section>
+        )}
+        {selected && (
+          <section className="page-section page-width">
+            <a
+              className="text-link back-link"
+              href={`/?lang=${language}#events`}
+            >
+              <Arrow reverse />
+              {t.back}
+            </a>
+            <div className="event-detail">
+              <div className="detail-gallery">
+                <Image
+                  src={selected.images[detailSlide]}
+                  alt={selectedText.title}
+                  sizes="(max-width: 760px) 90vw, 50vw"
+                  priority
+                />
+                {selected.images.length > 1 && (
+                  <div className="gallery-thumbnails">
+                    {selected.images.map((img, i) => (
+                      <button
+                        key={img.src}
+                        aria-label={`${t.image} ${i + 1}`}
+                        aria-pressed={i === detailSlide}
+                        onClick={() => setDetailSlide(i)}
+                      >
+                        <Image src={img} alt="" sizes="80px" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="detail-copy">
+                <span className="small-label">{t.past}</span>
+                <h1>{selectedText.title}</h1>
+                <p>{selectedText.description}</p>
+                <div className="booking-panel">
+                  <p>{t.archiveNote}</p>
+                  <button
+                    className="button"
+                    onClick={() =>
+                      setModal({ topic: selectedText.title, detailed: false })
+                    }
+                  >
+                    {t.interest}
+                    <Arrow />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+        {route === "private-events" && (
+          <section className="page-section page-width">
+            <header className="page-heading">
+              <span className="small-star" aria-hidden="true">
+                ✳
+              </span>
+              <h1>{t.privateTitle}</h1>
+              <p className="lead">{t.privateIntro}</p>
+              <p>{t.privateBody}</p>
+            </header>
+            <div className="private-grid">
+              <article>
+                <Image
+                  src={serviceImages[1]}
+                  alt=""
+                  sizes="(max-width: 760px) 90vw, 45vw"
+                />
+                <div>
+                  <h2>{t.customTitle}</h2>
+                  <p>{t.customBody}</p>
+                  <button
+                    className="button"
+                    onClick={() => setModal({ topic: "", detailed: true })}
+                  >
+                    {t.inquire}
+                    <Arrow />
+                  </button>
+                </div>
+              </article>
+              <article>
+                <Image
+                  src={serviceImages[0]}
+                  alt=""
+                  sizes="(max-width: 760px) 90vw, 45vw"
+                />
+                <div>
+                  <h2>{t.curatedTitle}</h2>
+                  <p>{t.curatedBody}</p>
+                  <a
+                    href={`/?lang=${language}#events`}
+                    className="button button-outline"
+                  >
+                    {t.heroCta}
+                    <Arrow />
+                  </a>
+                </div>
+              </article>
+            </div>
+          </section>
+        )}
+        {route === "about" && (
+          <section className="about-section page-width">
+            <header className="page-heading">
+              <h1>{t.aboutTitle}</h1>
+            </header>
+            <div className="about-grid">
+              <div className="about-art">
+                <Image
+                  src={flowerArt}
+                  alt=""
+                  sizes="(max-width: 760px) 85vw, 35vw"
+                />
+              </div>
+              <div>
+                <h2>{t.aboutLead}</h2>
+                {t.aboutParagraphs.map((p) => (
+                  <p key={p}>{p}</p>
+                ))}
+                <a className="button" href={`/?lang=${language}#events`}>
+                  {t.heroCta}
+                  <Arrow />
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
+        {route === "contact" && (
+          <section className="page-section contact-section page-width">
+            <header className="page-heading">
+              <h1>{t.contactTitle}</h1>
+              <p>{t.contactBody}</p>
+              <div className="contact-links">
+                <a href="mailto:get2getherproject@gmail.com">get2getherproject@gmail.com</a>
+                <a href="tel:+306982151046">6982151046</a>
+              </div>
+            </header>
+            <ExperienceForm language={language} kind="inquiry" />
+          </section>
+        )}
+        {(route === "gift-card" || route === "loyalty-card") && (
+          <section className="page-section page-width">
+            <div className="event-detail">
+              <Image
+                className="card-art"
+                src={serviceImages[route === "gift-card" ? 2 : 3]}
+                alt={t.serviceNames[route === "gift-card" ? 2 : 3]}
+                sizes="(max-width: 760px) 90vw, 45vw"
+              />
+              <div className="detail-copy">
+                <h1>{route === "gift-card" ? t.giftTitle : t.loyaltyTitle}</h1>
+                <p>{route === "gift-card" ? t.giftBody : t.loyaltyBody}</p>
+                <button
+                  className="button"
+                  onClick={() =>
+                    setModal({
+                      topic: t.serviceNames[route === "gift-card" ? 2 : 3],
+                      detailed: false,
+                    })
+                  }
+                >
+                  {t.inquire}
+                  <Arrow />
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+        {staticPage && (
+          <section className="page-section page-width">
+            <header className="page-heading">
+              <h1>{staticPage.title}</h1>
+              <p>{staticPage.intro}</p>
+            </header>
+            <div className="static-page-body">
+              <p>{staticPage.body}</p>
+            </div>
+          </section>
+        )}
+        {route === "extras" && (
+          <section className="page-section page-width">
+            <header className="page-heading">
+              <h1>{sitePages[language].extras.title}</h1>
+              <p>{sitePages[language].extras.intro}</p>
+            </header>
+            <div className="private-grid">
+              {[2, 3].map((i) => (
+                <article key={i}>
+                  <Image
+                    src={serviceImages[i]}
+                    alt={t.serviceNames[i]}
+                    sizes="(max-width: 760px) 90vw, 45vw"
+                  />
+                  <div>
+                    <h2>{t.serviceNames[i]}</h2>
+                    <p>{t.serviceDescriptions[i]}</p>
+                    <a
+                      className="button"
+                      href={`/?lang=${language}#${i === 2 ? "gift-card" : "loyalty-card"}`}
+                    >
+                      {t.details}
+                      <Arrow />
+                    </a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {!home &&
+          !selected &&
+          !staticPage &&
+          route !== "extras" &&
+          ![
+            "events",
+            "private-events",
+            "about",
+            "contact",
+            "gift-card",
+            "loyalty-card",
+          ].includes(route) && (
+            <section className="page-section page-width">
+              <h1>{t.notFound}</h1>
+              <a href={`/?lang=${language}#events`} className="button">
+                {t.back}
+              </a>
+            </section>
+          )}
+      </main>
+      <footer className="site-footer">
+        <div>
+          <a className="footer-brand" href={`/?lang=${language}#home`}>
+            Get2Gether
+          </a>
+          <p>{t.footer}</p>
+          <div className="contact-links footer-contact-links">
+            <a href="mailto:get2getherproject@gmail.com">get2getherproject@gmail.com</a>
+            <a href="tel:+306982151046">6982151046</a>
+          </div>
+        </div>
+        <nav aria-label={t.navigationLabel}>
+          {t.navItems.map((item) => (
+            <a href={`${item.href}?lang=${language}`} key={item.href}>
+              {item.label}
+            </a>
+          ))}
+          <a href={`/?lang=${language}#contact`}>{t.inquire}</a>
+        </nav>
+        <div className="footer-socials">
+          <span>{t.followUs}</span>
+          <a
+            href="https://www.tiktok.com/@get2getherproject"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Get2Gether Project on TikTok"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16.6 5.1a5.8 5.8 0 0 1-3.5-3.5h-3v12.1a2.7 2.7 0 1 1-2-2.6V8.1a5.7 5.7 0 1 0 5 5.6V7.6a8.8 8.8 0 0 0 5.2 1.7v-3a5.8 5.8 0 0 1-1.7-1.2Z" />
+            </svg>
+            <span>TikTok</span>
+          </a>
+        </div>
+        <small>
+          © {new Date().getFullYear()} Get2Gether Project.
+          <br />
+          {t.rights}
+        </small>
+      </footer>
+      <dialog
+        ref={dialog}
+        className="inquiry-dialog"
+        aria-labelledby="inquiry-title"
+        onCancel={() => setModal(null)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setModal(null);
+        }}
+      >
+        {modal && (
+          <div className="dialog-content">
+            <button
+              className="dialog-close circle-button"
+              aria-label={t.close}
+              onClick={() => setModal(null)}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
+                <path d="m6 6 12 12M6 18 18 6" />
+              </svg>
+            </button>
+            <h2 id="inquiry-title">{t.inquiryTitle}</h2>
+            <p>{t.inquiryIntro}</p>
+            <ExperienceForm
+              language={language}
+              kind="inquiry"
+              topic={modal.topic}
+              detailed={modal.detailed}
+            />
+          </div>
+        )}
+      </dialog>
+    </>
+  );
+}

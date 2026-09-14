@@ -35,3 +35,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .idea
+
+# Durable local application data: never commit or replace during deployment.
+/data/
+
+/.next-qa/

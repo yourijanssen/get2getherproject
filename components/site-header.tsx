@@ -1,102 +1,89 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import logo from "@/assets/TransferNow-20260526jAAIYA6v/Logo-transparent.png";
-import type { Language } from "@/lib/language";
-import { homeContent, languages } from "@/lib/language";
+import { useEffect, useRef, useState } from "react";
+import logo from "@/assets/TransferNow-20260526jAAIYA6v/Logo-transparent-cropped.png";
+import { homeContent, languages, type Language } from "@/lib/language";
 
-type SiteHeaderProps = {
+// Renders the responsive navigation and keeps the language switch on the current view.
+export function SiteHeader({
+  language,
+  route,
+}: {
   language: Language;
-};
-
-// Renders the site header and controls the mobile navigation menu state.
-export function SiteHeader({ language }: SiteHeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
+  route: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const toggle = useRef<HTMLButtonElement>(null);
   const content = homeContent[language];
-  const alternateLanguage = languages[language].alternate;
-
   useEffect(() => {
-    const sectionIds = content.navItems.map((item) => item.href.replace("#", ""));
-    const sections = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((section): section is HTMLElement => Boolean(section));
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-        if (visibleEntry) {
-          setActiveSection(visibleEntry.target.id);
-        }
-      },
-      {
-        rootMargin: "-35% 0px -55% 0px",
-        threshold: [0, 0.2, 0.6],
-      },
-    );
-
-    sections.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, [content.navItems]);
-
-  function closeMenuAndSetActive(sectionId: string) {
-    setActiveSection(sectionId);
-    setIsMenuOpen(false);
-  }
-
+    document.documentElement.lang = language;
+  }, [language]);
+  useEffect(() => {
+    // Escape returns focus to the mobile menu trigger.
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        toggle.current?.focus();
+      }
+    }
+    if (open) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
   return (
     <header className="site-header">
-      <Link
+      <a className="skip-link" href="#main-content">
+        {content.skip}
+      </a>
+      <a
         className="site-logo"
         href={`/?lang=${language}#home`}
-        aria-label="Get2Gether home"
-        onClick={() => closeMenuAndSetActive("home")}
+        aria-label="Get2Gether"
+        onClick={() => setOpen(false)}
       >
-        <Image src={logo} alt="Get2Gether Project" priority />
-      </Link>
-
+        <Image src={logo} alt="Get2Gether Project" priority sizes="100px" />
+      </a>
       <button
+        ref={toggle}
         className="menu-toggle"
         type="button"
-        aria-label={content.menuLabel}
-        aria-expanded={isMenuOpen}
+        aria-label={open ? content.close : content.menuLabel}
+        aria-expanded={open}
         aria-controls="site-navigation"
-        onClick={() => setIsMenuOpen((open) => !open)}
+        onClick={() => setOpen(!open)}
       >
-        <span />
-        <span />
-        <span />
+        {open ? content.close : content.menu}
       </button>
-
       <nav
         id="site-navigation"
-        className={isMenuOpen ? "site-nav is-open" : "site-nav"}
+        className={`site-nav${open ? " is-open" : ""}`}
         aria-label={content.navigationLabel}
       >
-        {content.navItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={activeSection === item.href.replace("#", "") ? "is-active" : undefined}
-            aria-current={activeSection === item.href.replace("#", "") ? "page" : undefined}
-            onClick={() => closeMenuAndSetActive(item.href.replace("#", ""))}
-          >
-            {item.label}
-          </a>
-        ))}
-        <Link
+        {content.navItems.map((item) => {
+          const page = item.href === "/" ? "home" : item.href.slice(1);
+          const active =
+            route === page || (page === "events" && route.startsWith("event/"));
+          const href = `${item.href}?lang=${language}`;
+          return (
+            <a
+              key={item.href}
+              href={href}
+              className={active ? "is-active" : undefined}
+              aria-current={active ? "page" : undefined}
+              onClick={() => setOpen(false)}
+            >
+              {item.label}
+            </a>
+          );
+        })}
+        <a
           className="language-link"
-          href={`/?lang=${alternateLanguage}#${activeSection}`}
-          onClick={() => setIsMenuOpen(false)}
+          lang={languages[language].alternate}
+          href={`/?lang=${languages[language].alternate}#${route}`}
+          onClick={() => setOpen(false)}
         >
           {content.switchLabel}
-        </Link>
+        </a>
       </nav>
     </header>
   );

@@ -1,158 +1,307 @@
 export type Language = "el" | "en";
-
-export const languages: Record<Language, { label: string; alternate: Language }> = {
-  el: {
-    label: "ελληνικά",
-    alternate: "en",
-  },
-  en: {
-    label: "english",
-    alternate: "el",
-  },
-};
-
-export const homeContent: Record<
+export const languages: Record<
   Language,
-  {
-    metaDescription: string;
-    heading: string;
-    intro: string;
-    switchLabel: string;
-    navigationLabel: string;
-    menuLabel: string;
-    navItems: Array<{ label: string; href: string }>;
-    heroEyebrow: string;
-    heroCta: string;
-    sections: {
-      aboutTitle: string;
-      aboutBody: string;
-      servicesTitle: string;
-      servicesBody: string;
-      giftCardTitle: string;
-      giftCardBody: string;
-      loyaltyCardTitle: string;
-      loyaltyCardBody: string;
-      projectsTitle: string;
-      projectsBody: string;
-      referencesTitle: string;
-      referencesBody: string;
-      contactTitle: string;
-      contactBody: string;
-    };
-    references: Array<{ title: string; text: string }>;
-  }
+  { label: string; alternate: Language }
 > = {
-  el: {
-    metaDescription: "Μια βασική ιστοσελίδα Next.js για το Get2Gether Project.",
-    heading: "Get2Gether",
-    intro: "Ένας χώρος για ιδέες, δράσεις και συναντήσεις που φέρνουν ανθρώπους πιο κοντά.",
-    switchLabel: "english",
-    navigationLabel: "κύρια πλοήγηση",
-    menuLabel: "άνοιγμα μενού",
+  el: { label: "ελληνικά", alternate: "en" },
+  en: { label: "english", alternate: "el" },
+};
+
+export const homeContent = {
+  en: {
+    metaDescription:
+      "Creative workshops, shared experiences and little escapes from everyday life. Discover the Get2Gether Project.",
+    heading: "Your time,",
+    headingAccent: "better together.",
+    intro:
+      "Creative experiences for a little escape from everyday life. Make something new, meet your people, and enjoy the moment.",
+    switchLabel: "Ελληνικά",
+    navigationLabel: "Main navigation",
+    menu: "Menu",
+    menuLabel: "Open menu",
+    close: "Close",
+    skip: "Skip to content",
     navItems: [
-      { label: "αρχική", href: "#home" },
-      { label: "σχετικά", href: "#about" },
-      { label: "υπηρεσίες", href: "#services" },
-      { label: "workshops", href: "#references" },
-      { label: "επικοινωνία", href: "#contact" },
+      { label: "Home", href: "/" },
+      { label: "Events", href: "/events" },
+      { label: "DIY Kits", href: "/diy-kits" },
+      { label: "Extras", href: "/extras" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
     ],
-    heroEyebrow: "get2gether project",
-    heroCta: "δείτε περισσότερα",
-    sections: {
-      aboutTitle: "σχετικά με το project",
-      aboutBody:
-        "Το Get2Gether Project είναι μια απλή βάση για μια δίγλωσση ιστοσελίδα με καθαρή δομή, εικόνες και χώρο για μελλοντικό περιεχόμενο.",
-      servicesTitle: "διαθέσιμες υπηρεσίες",
-      servicesBody:
-        "Εκτός από τις εκδηλώσεις, η σελίδα μπορεί να παρουσιάζει διαθέσιμες επιλογές όπως gift cards και το loyalty card των συμμετεχόντων.",
-      giftCardTitle: "gift card",
-      giftCardBody:
-        "Το gift card εμφανίζεται ως διαθέσιμη υπηρεσία για όσους θέλουν να προσφέρουν μια εμπειρία Get2Gether σε κάποιον άλλον.",
-      loyaltyCardTitle: "loyalty card",
-      loyaltyCardBody:
-        "Κάθε φορά που κάποιος έρχεται σε event, η συμμετοχή του μπορεί να προστίθεται στο loyalty card του.",
-      projectsTitle: "δράσεις",
-      projectsBody:
-        "Η σελίδα είναι έτοιμη να επεκταθεί με εκδηλώσεις, κάρτες, νέα ή οποιαδήποτε ενότητα χρειαστεί το project.",
-      referencesTitle: "προηγούμενα workshops",
-      referencesBody:
-        "Τα προηγούμενα workshops χρησιμοποιούνται ως οπτικές αναφορές, ώστε ο επισκέπτης να καταλαβαίνει αμέσως την αισθητική και το είδος των εμπειριών.",
-      contactTitle: "επικοινωνία",
-      contactBody:
-        "Προσθέστε εδώ τα στοιχεία επικοινωνίας, φόρμες ή συνδέσμους κοινωνικών δικτύων όταν είναι διαθέσιμα.",
-    },
-    references: [
+    heroCta: "Explore workshops",
+    storyCta: "Our story",
+    inquire: "Get in touch",
+    services: "Our experiences",
+    previous: "Previous",
+    next: "Next",
+    image: "Image",
+    servicesIntro:
+      "A little creativity. A good conversation. A reason to get together.",
+    serviceNames: [
+      "Creative workshops",
+      "Private events",
+      "Gift card",
+      "Loyalty card",
+    ],
+    serviceDescriptions: [
+      "Discover what we make together.",
+      "An experience for your own group.",
+      "Give someone a moment to remember.",
+      "Make getting together a habit.",
+    ],
+    togetherTitle: "Small moments. Lasting connections.",
+    togetherBody:
+      "There is something special about sitting around a table, trying something for the first time, and leaving with more than what you made.",
+    reviewTitle: "Share your experience",
+    reviewIntro: "Have you joined us? We would love to hear your story.",
+    reviewSubmit: "Submit review",
+    rating: "Your rating",
+    ratingUnit: "out of 5 stars",
+    experience: "Your experience",
+    name: "Name",
+    email: "Email address",
+    phone: "Phone (optional)",
+    message: "Message",
+    submit: "Send request",
+    sending: "Sending…",
+    error: "We could not save your request. Please try again.",
+    success:
+      "Thank you. Your request has been saved. This is not a confirmed booking.",
+    reviewSuccess: "Thank you. Your review has been saved for moderation.",
+    privacy:
+      "Your details are used only to handle this request. Reviews are checked before publication; your email is never displayed.",
+    eventsTitle: "Our workshops",
+    eventsIntro:
+      "Explore the things we have made and the moments we have shared.",
+    past: "Past workshop",
+    details: "Discover more",
+    back: "Back to workshops",
+    upcoming: "Next time, together",
+    upcomingBody:
+      "New dates will be announced here. Tell us which workshop you would love to join.",
+    interest: "Register interest",
+    archiveNote:
+      "This workshop has already taken place. Register your interest in a future edition; dates and availability are not yet confirmed.",
+    privateTitle: "Private events",
+    privateIntro: "Your people. Your occasion. An experience made for you.",
+    privateBody:
+      "Whether you are celebrating or simply bringing your favourite people together, tell us your idea. We can explore the possibilities together.",
+    customTitle: "Create your own",
+    customBody:
+      "Share your occasion, preferred date and a few details about your group.",
+    curatedTitle: "Find your inspiration",
+    curatedBody:
+      "Start with one of our previous creative workshops and make it your own.",
+    inquiryTitle: "Let’s create something together",
+    inquiryIntro: "Tell us a little about your idea.",
+    date: "Preferred date",
+    guests: "Number of guests",
+    location: "Area / location",
+    setting: "Setting",
+    choose: "Choose an option",
+    outdoor: "Outdoor",
+    indoor: "Indoor",
+    both: "Either",
+    budget: "Decoration budget (€)",
+    activity: "Include a creative activity",
+    food: "Food / drink preference",
+    foodOptions: ["Brunch", "Food", "Drinks", "None"],
+    occasion: "Occasion or workshop",
+    aboutTitle: "Who we are",
+    aboutLead: "Life happens in the moments we share.",
+    aboutParagraphs: [
+      "Get2Gether is about making room for those moments: a conversation with someone new, the joy of creating with your hands, a few hours that feel different from the rest of the week.",
+      "Our workshops bring people together through creativity. From handmade flowers and textured art to swapping pre-loved treasures, every experience starts with a simple idea: let’s do something together.",
+      "Come with a friend or come as you are. You do not need to be an artist to enjoy the process. A little curiosity is a lovely place to start.",
+    ],
+    contactTitle: "Let’s get together",
+    contactBody:
+      "A question, a collaboration or an idea for your next gathering? Tell us about it.",
+    giftTitle: "A little gift. A shared experience.",
+    giftBody:
+      "Interested in gifting a Get2Gether workshop? Ask us about the possibilities and availability.",
+    loyaltyTitle: "More moments together",
+    loyaltyBody:
+      "Ask us about the Get2Gether loyalty card and how your workshop visits can count towards it.",
+    footer: "Creative experiences. Real connections.",
+    followUs: "Follow us",
+    rights: "All rights reserved.",
+    notFound: "This workshop could not be found.",
+    workshops: [
       {
-        title: "swap event",
-        text: "μια προηγούμενη δράση ανταλλαγής αντικειμένων με γειτονικό και δημιουργικό χαρακτήρα.",
+        title: "Let’s swap together",
+        description:
+          "Give pre-loved objects a new story. A gathering built around sharing, discovery and a little more connection with your neighbours.",
       },
       {
-        title: "pipe cleaner flowers",
-        text: "ένα floral workshop με έντονα χρώματα και χειροποίητη αισθητική.",
+        title: "Pipe cleaner flowers",
+        description:
+          "Bright colours, soft materials and flowers that last. Explore a playful way to create your own handmade bouquet.",
       },
       {
-        title: "textured art",
-        text: "ένα workshop με ανάγλυφες επιφάνειες και πιο minimal εικαστική κατεύθυνση.",
+        title: "Textured art",
+        description:
+          "Explore shape, texture and your own creative instinct. A chance to slow down and make something with your hands.",
+      },
+      {
+        title: "Building together",
+        description:
+          "Piece by piece, make something colourful. A relaxed creative experience with plenty of room for conversation.",
       },
     ],
   },
-  en: {
-    metaDescription: "A basic Next.js website for the Get2Gether Project.",
-    heading: "Get2Gether",
-    intro: "A space for ideas, activities, and gatherings that bring people closer together.",
-    switchLabel: "ελληνικά",
-    navigationLabel: "main navigation",
-    menuLabel: "open menu",
+  el: {
+    metaDescription:
+      "Δημιουργικά εργαστήρια, κοινές εμπειρίες και μικρές αποδράσεις από την καθημερινότητα. Ανακάλυψε το Get2Gether Project.",
+    heading: "Ο χρόνος σου,",
+    headingAccent: "ομορφότερος μαζί.",
+    intro:
+      "Δημιουργικές εμπειρίες για μια μικρή απόδραση από την καθημερινότητα. Φτιάξε κάτι νέο, γνώρισε ανθρώπους και απόλαυσε τη στιγμή.",
+    switchLabel: "English",
+    navigationLabel: "Κύρια πλοήγηση",
+    menu: "Μενού",
+    menuLabel: "Άνοιγμα μενού",
+    close: "Κλείσιμο",
+    skip: "Μετάβαση στο περιεχόμενο",
     navItems: [
-      { label: "home", href: "#home" },
-      { label: "about", href: "#about" },
-      { label: "services", href: "#services" },
-      { label: "workshops", href: "#references" },
-      { label: "contact", href: "#contact" },
+      { label: "Αρχική", href: "/" },
+      { label: "Εκδηλώσεις", href: "/events" },
+      { label: "DIY Σετ", href: "/diy-kits" },
+      { label: "Έξτρα", href: "/extras" },
+      { label: "Πολιτική Απορρήτου", href: "/privacy-policy" },
+      { label: "Σχετικά", href: "/about" },
+      { label: "Επικοινωνία", href: "/contact" },
     ],
-    heroEyebrow: "get2gether project",
-    heroCta: "see more",
-    sections: {
-      aboutTitle: "about the project",
-      aboutBody:
-        "The Get2Gether Project is a simple foundation for a bilingual website with a clear structure, images, and room for future content.",
-      servicesTitle: "available services",
-      servicesBody:
-        "Alongside events, the page can present available options such as gift cards and the participant loyalty card.",
-      giftCardTitle: "gift card",
-      giftCardBody:
-        "The gift card is shown as an available service for anyone who wants to give a Get2Gether experience to someone else.",
-      loyaltyCardTitle: "loyalty card",
-      loyaltyCardBody:
-        "Whenever someone attends an event, that visit can be added to their loyalty card.",
-      projectsTitle: "projects",
-      projectsBody:
-        "The page is ready to expand with events, cards, news, or any section the project needs.",
-      referencesTitle: "past workshops",
-      referencesBody:
-        "Past workshops are used as visual references, helping visitors quickly understand the aesthetic and kind of experiences offered.",
-      contactTitle: "contact",
-      contactBody:
-        "Add contact details, forms, or social links here when they are available.",
-    },
-    references: [
+    heroCta: "Δες τα εργαστήρια",
+    storyCta: "Η ιστορία μας",
+    inquire: "Επικοινωνία",
+    services: "Οι εμπειρίες μας",
+    previous: "Προηγούμενο",
+    next: "Επόμενο",
+    image: "Εικόνα",
+    servicesIntro:
+      "Λίγη δημιουργία. Μια όμορφη συζήτηση. Μια αφορμή να βρεθούμε μαζί.",
+    serviceNames: [
+      "Δημιουργικά εργαστήρια",
+      "Ιδιωτικές εκδηλώσεις",
+      "Δωροκάρτα",
+      "Κάρτα επιβράβευσης",
+    ],
+    serviceDescriptions: [
+      "Ανακάλυψε όσα δημιουργούμε μαζί.",
+      "Μια εμπειρία για τη δική σου παρέα.",
+      "Χάρισε μια στιγμή που θα μείνει αξέχαστη.",
+      "Κάνε τις συναντήσεις μας συνήθεια.",
+    ],
+    togetherTitle: "Μικρές στιγμές. Αληθινές σχέσεις.",
+    togetherBody:
+      "Είναι ξεχωριστό να κάθεσαι γύρω από ένα τραπέζι, να δοκιμάζεις κάτι για πρώτη φορά και να φεύγεις με περισσότερα από όσα έφτιαξες.",
+    reviewTitle: "Μοιράσου την εμπειρία σου",
+    reviewIntro:
+      "Ήσουν στην παρέα μας; Θα χαρούμε να ακούσουμε την ιστορία σου.",
+    reviewSubmit: "Υποβολή αξιολόγησης",
+    rating: "Η βαθμολογία σου",
+    ratingUnit: "από 5 αστέρια",
+    experience: "Η εμπειρία σου",
+    name: "Όνομα",
+    email: "Διεύθυνση email",
+    phone: "Τηλέφωνο (προαιρετικό)",
+    message: "Μήνυμα",
+    submit: "Αποστολή αιτήματος",
+    sending: "Αποστολή…",
+    error: "Δεν μπορέσαμε να αποθηκεύσουμε το αίτημά σου. Δοκίμασε ξανά.",
+    success:
+      "Ευχαριστούμε. Το αίτημά σου αποθηκεύτηκε. Δεν αποτελεί επιβεβαιωμένη κράτηση.",
+    reviewSuccess: "Ευχαριστούμε. Η αξιολόγησή σου αποθηκεύτηκε για έλεγχο.",
+    privacy:
+      "Τα στοιχεία σου χρησιμοποιούνται μόνο για τη διαχείριση του αιτήματος. Οι αξιολογήσεις ελέγχονται πριν από τη δημοσίευση· το email σου δεν εμφανίζεται ποτέ.",
+    eventsTitle: "Τα εργαστήριά μας",
+    eventsIntro:
+      "Ανακάλυψε όσα δημιουργήσαμε και τις στιγμές που μοιραστήκαμε.",
+    past: "Προηγούμενο εργαστήριο",
+    details: "Μάθε περισσότερα",
+    back: "Πίσω στα εργαστήρια",
+    upcoming: "Την επόμενη φορά, μαζί",
+    upcomingBody:
+      "Οι νέες ημερομηνίες θα ανακοινωθούν εδώ. Πες μας σε ποιο εργαστήριο θα ήθελες να συμμετάσχεις.",
+    interest: "Εκδήλωση ενδιαφέροντος",
+    archiveNote:
+      "Αυτό το εργαστήριο έχει ήδη πραγματοποιηθεί. Δήλωσε ενδιαφέρον για μια μελλοντική συνάντηση· οι ημερομηνίες και η διαθεσιμότητα δεν έχουν ακόμη επιβεβαιωθεί.",
+    privateTitle: "Ιδιωτικές εκδηλώσεις",
+    privateIntro: "Οι άνθρωποί σου. Η αφορμή σου. Μια εμπειρία για εσένα.",
+    privateBody:
+      "Είτε γιορτάζεις είτε θέλεις απλώς να φέρεις κοντά τους αγαπημένους σου, μοιράσου την ιδέα σου. Θα εξερευνήσουμε μαζί τις δυνατότητες.",
+    customTitle: "Δημιούργησε τη δική σου",
+    customBody:
+      "Πες μας την αφορμή, την επιθυμητή ημερομηνία και λίγα λόγια για την παρέα σου.",
+    curatedTitle: "Βρες την έμπνευσή σου",
+    curatedBody:
+      "Ξεκίνα από ένα προηγούμενο δημιουργικό εργαστήριό μας και προσάρμοσέ το στην παρέα σου.",
+    inquiryTitle: "Ας δημιουργήσουμε κάτι μαζί",
+    inquiryIntro: "Πες μας λίγα λόγια για την ιδέα σου.",
+    date: "Επιθυμητή ημερομηνία",
+    guests: "Αριθμός ατόμων",
+    location: "Περιοχή / τοποθεσία",
+    setting: "Χώρος",
+    choose: "Επίλεξε",
+    outdoor: "Εξωτερικός",
+    indoor: "Εσωτερικός",
+    both: "Οποιοσδήποτε",
+    budget: "Προϋπολογισμός διακόσμησης (€)",
+    activity: "Θα ήθελα δημιουργική δραστηριότητα",
+    food: "Προτίμηση φαγητού / ποτού",
+    foodOptions: ["Brunch", "Φαγητό", "Ποτά", "Τίποτα"],
+    occasion: "Αφορμή ή εργαστήριο",
+    aboutTitle: "Ποιοι είμαστε",
+    aboutLead: "Η ζωή είναι οι στιγμές που μοιραζόμαστε.",
+    aboutParagraphs: [
+      "Το Get2Gether δημιουργεί χώρο για αυτές τις στιγμές: μια συζήτηση με κάποιον καινούριο, τη χαρά να δημιουργείς με τα χέρια σου, λίγες ώρες διαφορετικές από την υπόλοιπη εβδομάδα.",
+      "Τα εργαστήριά μας φέρνουν τους ανθρώπους κοντά μέσα από τη δημιουργία. Από χειροποίητα λουλούδια και ανάγλυφη τέχνη μέχρι ανταλλαγές αγαπημένων αντικειμένων, κάθε εμπειρία ξεκινά με μια απλή ιδέα: ας κάνουμε κάτι μαζί.",
+      "Έλα με την παρέα σου ή μόνος σου. Δεν χρειάζεται να είσαι καλλιτέχνης για να απολαύσεις τη διαδικασία. Λίγη περιέργεια είναι μια όμορφη αρχή.",
+    ],
+    contactTitle: "Ας βρεθούμε μαζί",
+    contactBody:
+      "Μια ερώτηση, μια συνεργασία ή μια ιδέα για την επόμενη συνάντησή σου; Μίλησέ μας γι’ αυτό.",
+    giftTitle: "Ένα μικρό δώρο. Μια κοινή εμπειρία.",
+    giftBody:
+      "Θέλεις να χαρίσεις ένα εργαστήριο Get2Gether; Ρώτησέ μας για τις επιλογές και τη διαθεσιμότητα.",
+    loyaltyTitle: "Περισσότερες στιγμές μαζί",
+    loyaltyBody:
+      "Ρώτησέ μας για την κάρτα επιβράβευσης Get2Gether και πώς μπορούν να μετρήσουν οι συμμετοχές σου.",
+    footer: "Δημιουργικές εμπειρίες. Αληθινές σχέσεις.",
+    followUs: "Ακολουθήστε μας",
+    rights: "Με επιφύλαξη παντός δικαιώματος.",
+    notFound: "Αυτό το εργαστήριο δεν βρέθηκε.",
+    workshops: [
       {
-        title: "swap event",
-        text: "a previous item-swap activity with a local, creative character.",
+        title: "Ας ανταλλάξουμε μαζί",
+        description:
+          "Χάρισε μια νέα ιστορία σε αγαπημένα αντικείμενα. Μια συνάντηση γεμάτη μοίρασμα, ανακαλύψεις και σύνδεση με τους ανθρώπους της γειτονιάς.",
       },
       {
-        title: "pipe cleaner flowers",
-        text: "a floral workshop with bright colors and a handmade aesthetic.",
+        title: "Λουλούδια από σύρμα πίπας",
+        description:
+          "Έντονα χρώματα, μαλακά υλικά και λουλούδια που μένουν. Ανακάλυψε έναν παιχνιδιάρικο τρόπο να φτιάξεις το δικό σου χειροποίητο μπουκέτο.",
       },
       {
-        title: "textured art",
-        text: "a workshop with raised surfaces and a more minimal art direction.",
+        title: "Ανάγλυφη τέχνη",
+        description:
+          "Εξερεύνησε τις φόρμες, τις υφές και τη δημιουργικότητά σου. Μια ευκαιρία να χαλαρώσεις και να φτιάξεις κάτι με τα χέρια σου.",
+      },
+      {
+        title: "Χτίζουμε μαζί",
+        description:
+          "Κομμάτι κομμάτι, φτιάξε κάτι πολύχρωμο. Μια χαλαρή δημιουργική εμπειρία με άφθονο χώρο για συζήτηση.",
       },
     ],
   },
 };
 
-// Resolves the active language from the URL query and falls back to Greek.
-export function resolveLanguage(language: string | string[] | undefined): Language {
+// Resolves the URL language, with Greek as the default.
+export function resolveLanguage(
+  language: string | string[] | undefined,
+): Language {
   return language === "en" ? "en" : "el";
 }
