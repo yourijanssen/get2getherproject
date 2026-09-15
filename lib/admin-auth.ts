@@ -60,7 +60,8 @@ export function adminCookie(value: string) {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
-    path: "/admin",
+    // The manager UI saves through /api/admin, so the session must reach both routes.
+    path: "/",
     maxAge: sessionLifetime,
   };
 }

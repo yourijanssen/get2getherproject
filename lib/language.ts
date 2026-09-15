@@ -80,7 +80,8 @@ export const homeContent = {
     eventsIntro:
       "Explore the things we have made and the moments we have shared.",
     calendarTitle: "Workshop calendar",
-    calendarIntro: "Browse the dates of our past workshops.",
+    calendarIntro: "Browse the dates of our workshops.",
+    calendarToday: "Today",
     calendarPreviousMonth: "Previous month",
     calendarNextMonth: "Next month",
     calendarDate: "Date",
@@ -277,7 +278,8 @@ export const homeContent = {
     eventsIntro:
       "Ανακάλυψε όσα δημιουργήσαμε και τις στιγμές που μοιραστήκαμε.",
     calendarTitle: "Ημερολόγιο εργαστηρίων",
-    calendarIntro: "Δες τις ημερομηνίες των προηγούμενων εργαστηρίων μας.",
+    calendarIntro: "Δες τις ημερομηνίες των εργαστηρίων μας.",
+    calendarToday: "Σήμερα",
     calendarPreviousMonth: "Προηγούμενος μήνας",
     calendarNextMonth: "Επόμενος μήνας",
     calendarDate: "Ημερομηνία",

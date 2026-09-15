@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ExperienceSite } from "@/components/experience-site";
 import { resolveLanguage } from "@/lib/language";
 import { getDiyProducts } from "@/lib/diy-products";
+import { getManagedContent } from "@/lib/managed-content";
 import { sitePages, type SitePageKey } from "@/lib/page-content";
 
 type SitePageProps = {
@@ -42,6 +43,6 @@ export default async function SitePage({
     notFound();
   }
 
-  const diyProducts = page === "diy-kits" ? await getDiyProducts() : [];
-  return <ExperienceSite language={language} initialRoute={page} diyProducts={diyProducts} />;
+  const [diyProducts, events, extras] = await Promise.all([page === "diy-kits" ? getDiyProducts() : Promise.resolve([]), getManagedContent("events"), getManagedContent("extras")]);
+  return <ExperienceSite language={language} initialRoute={page} diyProducts={diyProducts} events={events} extras={extras} />;
 }

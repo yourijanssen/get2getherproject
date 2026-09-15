@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const response = Response.json({ signedIn: true });
   response.headers.append(
     "Set-Cookie",
-    `${adminCookie(session).name}=${session}; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=${adminCookie(session).maxAge}`,
+    `${adminCookie(session).name}=${session}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${adminCookie(session).maxAge}`,
   );
   return response;
 }
@@ -30,7 +30,7 @@ export function DELETE() {
   const response = Response.json({ signedOut: true });
   response.headers.append(
     "Set-Cookie",
-    `${cookie.name}=; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=0`,
+    `${cookie.name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
   );
   return response;
 }

@@ -1,12 +1,12 @@
-import { AdminDashboard } from "@/components/admin-dashboard";
 import { AdminLogin } from "@/components/admin-login";
+import { DiyAdmin } from "@/components/diy-admin";
 import { isAdmin } from "@/lib/admin-auth";
 import { getDiyProducts } from "@/lib/diy-products";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+// Keeps catalogue management in its own workspace instead of the dashboard.
+export default async function DiyProductsAdminPage() {
   if (!(await isAdmin())) return <AdminLogin />;
-  const products = await getDiyProducts(true);
-  return <AdminDashboard productCount={products.length} />;
+  return <DiyAdmin products={await getDiyProducts(true)} />;
 }

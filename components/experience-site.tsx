@@ -7,19 +7,27 @@ import { Arrow, ExperienceForm } from "@/components/experience-form";
 import { sitePages, type SitePageKey } from "@/lib/page-content";
 import { homeContent, type Language } from "@/lib/language";
 import type { DiyProduct } from "@/lib/diy-products";
-import { heroImages, serviceImages, workshops } from "@/lib/workshops";
+import { heroImages, serviceImages } from "@/lib/workshops";
+import type { ContentRecord } from "@/lib/managed-content";
 import flowerArt from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 29.png";
 
 type Modal = { topic: string; detailed: boolean } | null;
-type Workshop = (typeof workshops)[number];
+type Workshop = Omit<ContentRecord, "images"> & { images: { src: string; width: number; height: number }[] };
 
 // Parses a date-only workshop record at noon UTC so it stays on the intended day in every timezone.
 function workshopDate(date: string) {
   return new Date(`${date}T12:00:00Z`);
 }
 
+// Formats a local calendar day without shifting it through a UTC conversion.
+function localDateKey(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+}
+
 // Produces complete Sunday-first calendar weeks and associates dates with their workshop record.
-function calendarCells(month: string) {
+function calendarCells(month: string, workshops: Workshop[]) {
   const [year, monthNumber] = month.split("-").map(Number);
   const firstWeekday = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
   const daysInMonth = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
@@ -43,20 +51,36 @@ export function ExperienceSite({
   language,
   initialRoute = "home",
   diyProducts = [],
+  events,
+  extras,
 }: {
   language: Language;
   initialRoute?: string;
   diyProducts?: DiyProduct[];
+  events: ContentRecord[];
+  extras: ContentRecord[];
 }) {
   const t = homeContent[language];
+  const workshops = events.map(item => ({ ...item, images: item.images.map(src => ({ src, width: 1080, height: 1080 })) }));
+  // Selects the text belonging to the requested public language.
+  function localized(item: ContentRecord) {
+    return { title: language === "el" ? item.titleEl : item.titleEn, description: language === "el" ? item.descriptionEl : item.descriptionEn };
+  }
   const [route, setRoute] = useState(initialRoute);
   const [slide, setSlide] = useState(0);
   const [detailSlide, setDetailSlide] = useState(0);
   const [modal, setModal] = useState<Modal>(null);
+  const currentDate = localDateKey();
+  const currentMonth = currentDate.slice(0, 7);
   const agendaMonths = [
-    ...new Set(workshops.map((workshop) => workshop.date.slice(0, 7))),
+    ...new Set([
+      ...workshops.map((workshop) => workshop.date.slice(0, 7)),
+      currentMonth,
+    ]),
   ].sort();
-  const [agendaMonthIndex, setAgendaMonthIndex] = useState(0);
+  const [agendaMonthIndex, setAgendaMonthIndex] = useState(() =>
+    agendaMonths.indexOf(currentMonth),
+  );
   const serviceRail = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const main = useRef<HTMLElement>(null);
@@ -128,10 +152,11 @@ export function ExperienceSite({
     (item) => route === `event/${item.slug}`,
   );
   const selected = workshops[selectedIndex];
-  const selectedText = t.workshops[selectedIndex];
+  const selectedText = selected ? localized(events[selectedIndex]) : { title: "", description: "" };
+  const selectedExtra = extras.find(item => route === `extra/${item.slug}` || route === item.slug);
   const locale = language === "el" ? "el-GR" : "en-GB";
   const agendaMonth = agendaMonths[agendaMonthIndex];
-  const agendaCells = calendarCells(agendaMonth);
+  const agendaCells = calendarCells(agendaMonth, workshops);
   const agendaTitle = new Intl.DateTimeFormat(locale, {
     month: "long",
     year: "numeric",
@@ -308,6 +333,14 @@ export function ExperienceSite({
                 </div>
                 <div className="agenda-controls">
                   <button
+                    className="agenda-today"
+                    type="button"
+                    onClick={() => setAgendaMonthIndex(agendaMonths.indexOf(currentMonth))}
+                    disabled={agendaMonth === currentMonth}
+                  >
+                    {t.calendarToday}
+                  </button>
+                  <button
                     type="button"
                     onClick={() => setAgendaMonthIndex((index) => index - 1)}
                     disabled={agendaMonthIndex === 0}
@@ -340,13 +373,14 @@ export function ExperienceSite({
                     const workshopIndex = workshops.findIndex(
                       (workshop) => workshop.slug === cell.workshop?.slug,
                     );
-                    const workshopText = t.workshops[workshopIndex];
+                    const workshopText = workshopIndex >= 0 ? localized(events[workshopIndex]) : { title: "" };
 
                     return cell.workshop ? (
                       <a
-                        className="agenda-day agenda-event"
+                        className={`agenda-day agenda-event${cell.date === currentDate ? " is-today" : ""}`}
                         href={`/?lang=${language}#event/${cell.workshop.slug}`}
                         key={cell.date}
+                        aria-current={cell.date === currentDate ? "date" : undefined}
                         aria-label={`${formatWorkshopDate(cell.date)}: ${workshopText.title}`}
                       >
                         <time dateTime={cell.date}>{cell.day}</time>
@@ -356,7 +390,11 @@ export function ExperienceSite({
                         </small>
                       </a>
                     ) : (
-                      <div className="agenda-day" key={cell.date}>
+                      <div
+                        className={`agenda-day${cell.date === currentDate ? " is-today" : ""}`}
+                        key={cell.date}
+                        aria-current={cell.date === currentDate ? "date" : undefined}
+                      >
                         <time dateTime={cell.date}>{cell.day}</time>
                       </div>
                     );
@@ -373,13 +411,13 @@ export function ExperienceSite({
                   >
                     <Image
                       src={workshop.images[0]}
-                      alt={t.workshops[i].title}
+                      alt={localized(events[i]).title}
                       sizes="(max-width: 760px) 90vw, 30vw"
                     />
                   </a>
                   <div className="workshop-copy">
-                    <span className="small-label">{t.past}</span>
-                    <h2>{t.workshops[i].title}</h2>
+                    <span className="small-label">{workshop.date < currentDate ? t.past : (language === "el" ? "Προσεχής εκδήλωση" : "Upcoming event")}</span>
+                    <h2>{localized(events[i]).title}</h2>
                     <a
                       className="text-link"
                       href={`/?lang=${language}#event/${workshop.slug}`}
@@ -441,7 +479,7 @@ export function ExperienceSite({
                 )}
               </div>
               <div className="detail-copy">
-                <span className="small-label">{t.past}</span>
+                <span className="small-label">{selected.date < currentDate ? t.past : (language === "el" ? "Προσεχής εκδήλωση" : "Upcoming event")}</span>
                 <h1>{selectedText.title}</h1>
                 <p>{selectedText.description}</p>
                 <dl className="event-meta">
@@ -457,7 +495,7 @@ export function ExperienceSite({
                   </div>
                 </dl>
                 <div className="booking-panel">
-                  <p>{t.archiveNote}</p>
+                  <p>{selected.date < currentDate ? t.archiveNote : (language === "el" ? "Δήλωσε το ενδιαφέρον σου για αυτή την εκδήλωση. Θα επικοινωνήσουμε μαζί σου για τη διαθεσιμότητα." : "Register your interest in this event. We will contact you about availability.")}</p>
                   <button
                     className="button"
                     onClick={() =>
@@ -574,23 +612,25 @@ export function ExperienceSite({
             </div>
           </section>
         )}
-        {(route === "gift-card" || route === "loyalty-card") && (
+        {selectedExtra && (
           <section className="page-section page-width">
             <div className="event-detail">
               <Image
                 className="card-art"
-                src={serviceImages[route === "gift-card" ? 2 : 3]}
-                alt={t.serviceNames[route === "gift-card" ? 2 : 3]}
+                src={selectedExtra.images[0]}
+                width={1080}
+                height={1080}
+                alt={localized(selectedExtra).title}
                 sizes="(max-width: 760px) 90vw, 45vw"
               />
               <div className="detail-copy">
-                <h1>{route === "gift-card" ? t.giftTitle : t.loyaltyTitle}</h1>
-                <p>{route === "gift-card" ? t.giftBody : t.loyaltyBody}</p>
+                <h1>{localized(selectedExtra).title}</h1>
+                <p>{localized(selectedExtra).description}</p>
                 <button
                   className="button"
                   onClick={() =>
                     setModal({
-                      topic: t.serviceNames[route === "gift-card" ? 2 : 3],
+                      topic: localized(selectedExtra).title,
                       detailed: false,
                     })
                   }
@@ -621,19 +661,21 @@ export function ExperienceSite({
               <p>{sitePages[language].extras.intro}</p>
             </header>
             <div className="private-grid">
-              {[2, 3].map((i) => (
-                <article key={i}>
+              {extras.map((extra) => (
+                <article key={extra.id}>
                   <Image
-                    src={serviceImages[i]}
-                    alt={t.serviceNames[i]}
+                    src={extra.images[0]}
+                    width={1080}
+                    height={1080}
+                    alt={localized(extra).title}
                     sizes="(max-width: 760px) 90vw, 45vw"
                   />
                   <div>
-                    <h2>{t.serviceNames[i]}</h2>
-                    <p>{t.serviceDescriptions[i]}</p>
+                    <h2>{localized(extra).title}</h2>
+                    <p>{localized(extra).description}</p>
                     <a
                       className="button"
-                      href={`/?lang=${language}#${i === 2 ? "gift-card" : "loyalty-card"}`}
+                      href={`/?lang=${language}#extra/${extra.slug}`}
                     >
                       {t.details}
                       <Arrow />
@@ -669,6 +711,7 @@ export function ExperienceSite({
         )}
         {!home &&
           !selected &&
+          !selectedExtra &&
           !staticPage &&
           route !== "extras" &&
           ![
@@ -676,8 +719,6 @@ export function ExperienceSite({
             "private-events",
             "about",
             "contact",
-            "gift-card",
-            "loyalty-card",
           ].includes(route) && (
             <section className="page-section page-width">
               <h1>{t.notFound}</h1>
