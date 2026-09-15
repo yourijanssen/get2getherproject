@@ -1493,6 +1493,10 @@ p {
     left: -16px;
     bottom: -16px;
   }
+  /* The decorative burst crowds the hero artwork on compact touch screens. */
+  .sunburst {
+    display: none;
+  }
   .service-card {
     flex-basis: 84%;
   }
