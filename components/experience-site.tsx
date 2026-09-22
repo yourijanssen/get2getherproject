@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { Arrow, ExperienceForm } from "@/components/experience-form";
 import { sitePages, type SitePageKey } from "@/lib/page-content";
@@ -68,6 +68,26 @@ export function ExperienceSite({
   }
   const [route, setRoute] = useState(initialRoute);
   const [slide, setSlide] = useState(0);
+  const heroGesture = useRef<{ id: number; x: number; y: number } | null>(null);
+
+  // Tracks a single touch/pen gesture without intercepting arrow clicks or page scrolling.
+  function startHeroSwipe(event: PointerEvent<HTMLDivElement>) {
+    if (!event.isPrimary) { heroGesture.current = null; return; }
+    if (event.pointerType === "mouse" || (event.target as Element).closest("button")) return;
+    heroGesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  // Commits only deliberate horizontal swipes; short taps and vertical gestures do nothing.
+  function finishHeroSwipe(event: PointerEvent<HTMLDivElement>) {
+    const gesture = heroGesture.current;
+    heroGesture.current = null;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    setSlide(current => (current + (dx < 0 ? 1 : -1) + heroImages.length) % heroImages.length);
+  }
   const [detailSlide, setDetailSlide] = useState(0);
   const [modal, setModal] = useState<Modal>(null);
   const currentDate = localDateKey();
@@ -82,6 +102,10 @@ export function ExperienceSite({
     agendaMonths.indexOf(currentMonth),
   );
   const serviceRail = useRef<HTMLDivElement>(null);
+  const [serviceRailPosition, setServiceRailPosition] = useState({
+    atStart: true,
+    atEnd: false,
+  });
   const dialog = useRef<HTMLDialogElement>(null);
   const main = useRef<HTMLElement>(null);
 
@@ -134,18 +158,49 @@ export function ExperienceSite({
     document.title = `${title}${route === "home" ? "" : " | Get2Gether"}`;
   }, [route, t]);
 
-  // Scroll one service card at a time, keeping native touch scrolling available.
+  // Keeps the service arrows in sync with the actual horizontal scroll range.
+  function updateServiceRailPosition() {
+    const rail = serviceRail.current;
+    if (!rail) return;
+
+    const maxScrollLeft = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const nextPosition = {
+      atStart: rail.scrollLeft <= 1,
+      atEnd: rail.scrollLeft >= maxScrollLeft - 1,
+    };
+    setServiceRailPosition((position) =>
+      position.atStart === nextPosition.atStart && position.atEnd === nextPosition.atEnd
+        ? position
+        : nextPosition,
+    );
+  }
+
+  useEffect(() => {
+    const rail = serviceRail.current;
+    if (!rail) return;
+
+    updateServiceRailPosition();
+    rail.addEventListener("scroll", updateServiceRailPosition, { passive: true });
+    const resizeObserver = new ResizeObserver(updateServiceRailPosition);
+    resizeObserver.observe(rail);
+
+    return () => {
+      rail.removeEventListener("scroll", updateServiceRailPosition);
+      resizeObserver.disconnect();
+    };
+  }, [language]);
+
+  // Moves directly between the start and end of the service list.
   function moveServices(direction: number) {
     const rail = serviceRail.current;
-    if (rail)
-      rail.scrollBy({
-        left:
-          direction *
-          ((rail.firstElementChild?.getBoundingClientRect().width || 300) + 24),
+    if (rail) {
+      rail.scrollTo({
+        left: direction > 0 ? rail.scrollWidth - rail.clientWidth : 0,
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
           ? "instant"
           : "smooth",
       });
+    }
   }
 
   const selectedIndex = workshops.findIndex(
@@ -211,9 +266,15 @@ export function ExperienceSite({
                   <span className="sunburst" aria-hidden="true">
                     ✳
                   </span>
-                  <div className="hero-frame">
+                  <div className="hero-frame"
+                    onPointerDown={startHeroSwipe}
+                    onPointerUp={finishHeroSwipe}
+                    onPointerCancel={() => { heroGesture.current = null; }}
+                    onLostPointerCapture={() => { heroGesture.current = null; }}
+                  >
                     <Image
                       src={heroImages[slide]}
+                      draggable={false}
                       alt={t.workshops[[3, 1, 2][slide]].title}
                       priority
                       sizes="(max-width: 760px) 90vw, 43vw"
@@ -259,6 +320,7 @@ export function ExperienceSite({
                     className="circle-button"
                     onClick={() => moveServices(-1)}
                     aria-label={t.previous}
+                    disabled={serviceRailPosition.atStart}
                   >
                     <Arrow reverse />
                   </button>
@@ -266,6 +328,7 @@ export function ExperienceSite({
                     className="circle-button"
                     onClick={() => moveServices(1)}
                     aria-label={t.next}
+                    disabled={serviceRailPosition.atEnd}
                   >
                     <Arrow />
                   </button>
@@ -605,8 +668,28 @@ export function ExperienceSite({
               <div className="contact-simple-card contact-simple-social">
                 <span>{t.followUs}</span>
                 <div>
-                  <a href="https://www.instagram.com/get2getherproject/" target="_blank" rel="noreferrer">Instagram</a>
-                  <a href="https://www.tiktok.com/@get2getherproject" target="_blank" rel="noreferrer">TikTok</a>
+                  <a
+                    href="https://www.instagram.com/get2getherproject/"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={t.instagramLabel}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm5.25-3.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z" />
+                    </svg>
+                    <span>Instagram</span>
+                  </a>
+                  <a
+                    href="https://www.tiktok.com/@get2getherproject"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Get2Gether Project on TikTok"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M16.6 5.1a5.8 5.8 0 0 1-3.5-3.5h-3v12.1a2.7 2.7 0 1 1-2-2.6V8.1a5.7 5.7 0 1 0 5 5.6V7.6a8.8 8.8 0 0 0 5.2 1.7v-3a5.8 5.8 0 0 1-1.7-1.2Z" />
+                    </svg>
+                    <span>TikTok</span>
+                  </a>
                 </div>
               </div>
             </div>

@@ -234,6 +234,8 @@ p {
   min-width: 0;
 }
 .hero-frame {
+  /* Horizontal hero swipes coexist with native vertical scrolling and pinch zoom. */
+  touch-action: pan-y pinch-zoom;
   position: relative;
   border-radius: 56px;
   overflow: hidden;
@@ -241,6 +243,8 @@ p {
   background: #f4e7dc;
 }
 .hero-frame > img {
+  user-select: none;
+  -webkit-user-select: none;
   width: 100%;
   aspect-ratio: 1/1.13;
   object-fit: cover;
@@ -325,6 +329,10 @@ p {
 }
 .circle-button:hover {
   background: #f0e7df;
+}
+.circle-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 .service-rail {
   display: flex;
@@ -885,7 +893,141 @@ p {
   max-width: 760px;
 }
 
-.contact-simple{display:grid;grid-template-columns:minmax(0,.9fr) minmax(330px,1.1fr);gap:clamp(38px,7vw,100px);align-items:start;min-height:calc(100vh - 280px);padding-top:clamp(100px,16vh,190px);padding-bottom:110px}.contact-simple-intro h1{max-width:500px;margin:0;color:var(--text);font-size:clamp(54px,6vw,90px);line-height:.9}.contact-simple-intro>p:last-child{max-width:430px;margin:26px 0 0;color:var(--muted);font-size:18px;line-height:1.6}.contact-simple-kicker{margin:0 0 18px;color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}.contact-simple-grid{display:grid;gap:12px}.contact-simple-card{display:grid;gap:10px;padding:26px 28px;border:1px solid var(--line);background:var(--surface);color:var(--text);text-decoration:none;transition:border-color .2s ease,transform .2s ease}.contact-simple-card>span{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.contact-simple-card strong{font-size:clamp(16px,2vw,21px);font-weight:600;overflow-wrap:anywhere}.contact-simple-card[href]:hover,.contact-simple-card[href]:focus-visible{border-color:var(--gold);outline:0;transform:translateY(-2px)}.contact-simple-social div{display:flex;flex-wrap:wrap;gap:10px}.contact-simple-social a{padding:8px 10px;border:1px solid var(--line);color:var(--text);font-size:13px;font-weight:700;text-decoration:none}.contact-simple-social a:hover,.contact-simple-social a:focus-visible{border-color:var(--gold);color:var(--gold);outline:0}@media(max-width:760px){.contact-simple{grid-template-columns:1fr;gap:42px;min-height:0;padding-top:82px;padding-bottom:72px}.contact-simple-intro h1{font-size:clamp(52px,16vw,74px)}.contact-simple-intro>p:last-child{font-size:16px}.contact-simple-card{padding:22px}}
+.contact-simple {
+  --contact-blue: #2858ac;
+  --contact-blue-soft: #eaf2ff;
+  --contact-blue-line: #c7d9f8;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(330px, 1.1fr);
+  align-items: start;
+  min-height: calc(100vh - 280px);
+  gap: clamp(38px, 7vw, 100px);
+  padding-top: clamp(100px, 16vh, 190px);
+  padding-bottom: 110px;
+}
+.contact-simple-intro h1 {
+  max-width: 500px;
+  margin: 0;
+  color: var(--contact-blue);
+  font-size: clamp(54px, 6vw, 90px);
+  line-height: 0.9;
+}
+.contact-simple-intro > p:last-child {
+  max-width: 430px;
+  margin: 26px 0 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.6;
+}
+.contact-simple-kicker {
+  margin: 0 0 18px;
+  color: var(--contact-blue);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.contact-simple-grid {
+  display: grid;
+  gap: 16px;
+}
+.contact-simple-card {
+  position: relative;
+  display: grid;
+  min-height: 132px;
+  align-content: center;
+  gap: 10px;
+  padding: 28px 32px;
+  overflow: hidden;
+  border: 1px solid var(--contact-blue-line);
+  border-radius: 22px;
+  background: #f8fbff;
+  color: var(--contact-blue);
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.contact-simple-card::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  background: var(--contact-blue);
+  content: "";
+}
+.contact-simple-card > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.contact-simple-card strong {
+  font-size: clamp(16px, 2vw, 21px);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.contact-simple-card[href]:hover,
+.contact-simple-card[href]:focus-visible {
+  border-color: var(--contact-blue);
+  outline: 0;
+  box-shadow: 0 16px 28px rgb(40 88 172 / 0.14);
+  transform: translateY(-3px);
+}
+.contact-simple-social {
+  background: var(--contact-blue-soft);
+}
+.contact-simple-social div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.contact-simple-social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid var(--contact-blue-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--contact-blue);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.contact-simple-social svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  fill: currentColor;
+}
+.contact-simple-social a:hover,
+.contact-simple-social a:focus-visible {
+  border-color: var(--contact-blue);
+  background: var(--contact-blue);
+  color: #fff;
+  outline: 0;
+}
+@media (max-width: 760px) {
+  .contact-simple {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 42px;
+    padding-top: 82px;
+    padding-bottom: 72px;
+  }
+  .contact-simple-intro h1 {
+    font-size: clamp(52px, 16vw, 74px);
+  }
+  .contact-simple-intro > p:last-child {
+    font-size: 16px;
+  }
+  .contact-simple-card {
+    min-height: 118px;
+    padding: 24px 26px;
+    border-radius: 18px;
+  }
+}
 .site-footer {
   border-top: 1px solid var(--line);
   background: var(--surface);
@@ -1691,6 +1833,39 @@ p {
 .linktree-card:hover {
   border-color: var(--text);
   background: rgb(41 83 166 / 0.05);
+}
+
+@media (max-width: 767.98px) {
+  .linktree-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .linktree-card {
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .linktree-card > div {
+    min-width: 0;
+  }
+
+  .linktree-card h3 {
+    margin-bottom: 4px;
+    font-size: 18px;
+  }
+
+  .linktree-card p {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .linktree-card svg {
+    flex: 0 0 auto;
+  }
 }
 
 /* Groups primary, utility, and language navigation into a consistent header. */
