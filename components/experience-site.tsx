@@ -4,8 +4,9 @@ import Image from "next/image";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { Arrow, ExperienceForm } from "@/components/experience-form";
-import { sitePages, type SitePageKey } from "@/lib/page-content";
-import { homeContent, type Language } from "@/lib/language";
+import type { SitePageKey } from "@/lib/page-content";
+import type { Language } from "@/lib/language";
+import type { SiteCopy } from "@/lib/site-content-schema";
 import type { DiyProduct } from "@/lib/diy-products";
 import { heroImages, serviceImages } from "@/lib/workshops";
 import type { ContentRecord } from "@/lib/managed-content";
@@ -53,14 +54,16 @@ export function ExperienceSite({
   diyProducts = [],
   events,
   extras,
+  content,
 }: {
   language: Language;
   initialRoute?: string;
   diyProducts?: DiyProduct[];
   events: ContentRecord[];
   extras: ContentRecord[];
+  content: SiteCopy;
 }) {
-  const t = homeContent[language];
+  const t = content.text;
   const workshops = events.map(item => ({ ...item, images: item.images.map(src => ({ src, width: 1080, height: 1080 })) }));
   // Selects the text belonging to the requested public language.
   function localized(item: ContentRecord) {
@@ -154,9 +157,9 @@ export function ExperienceSite({
             ? t.privateTitle
             : route === "contact"
               ? t.contactTitle
-              : t.eventsTitle;
+              : content.pages[route as SitePageKey]?.title || t.eventsTitle;
     document.title = `${title}${route === "home" ? "" : " | Get2Gether"}`;
-  }, [route, t]);
+  }, [route, t, content.pages]);
 
   // Keeps the service arrows in sync with the actual horizontal scroll range.
   function updateServiceRailPosition() {
@@ -231,14 +234,14 @@ export function ExperienceSite({
       timeZone: "UTC",
     }).format(workshopDate(date));
   const staticPage = ["diy-kits", "privacy-policy"].includes(route)
-    ? sitePages[language][route as SitePageKey]
+    ? content.pages[route as SitePageKey]
     : null;
   const home =
     route === "home" || route === "services" || route === "main-content";
 
   return (
     <>
-      <SiteHeader language={language} route={route} />
+      <SiteHeader language={language} route={route} content={t} />
       <main ref={main} id="main-content" lang={language} tabIndex={-1}>
         {home && (
           <>
@@ -377,7 +380,7 @@ export function ExperienceSite({
                 <h2>{t.reviewTitle}</h2>
                 <p>{t.reviewIntro}</p>
               </header>
-              <ExperienceForm language={language} kind="review" />
+              <ExperienceForm language={language} kind="review" content={t} />
             </section>
           </>
         )}
@@ -740,8 +743,8 @@ export function ExperienceSite({
         {route === "extras" && (
           <section className="page-section page-width">
             <header className="page-heading">
-              <h1>{sitePages[language].extras.title}</h1>
-              <p>{sitePages[language].extras.intro}</p>
+              <h1>{content.pages.extras.title}</h1>
+              <p>{content.pages.extras.intro}</p>
             </header>
             <div className="private-grid">
               {extras.map((extra) => (
@@ -901,6 +904,7 @@ export function ExperienceSite({
             <p>{t.inquiryIntro}</p>
             <ExperienceForm
               language={language}
+              content={t}
               kind="inquiry"
               topic={modal.topic}
               detailed={modal.detailed}

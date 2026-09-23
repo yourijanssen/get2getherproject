@@ -2,6 +2,12 @@ import { AdminShell } from "@/components/admin-shell";
 
 const workspaces = [
   {
+    title: "Site content",
+    description: "Edit page titles, the home page and website text in Greek and English.",
+    href: "/admin/site-content",
+    action: "Edit site content",
+  },
+  {
     title: "Events",
     description: "Keep upcoming gatherings and workshop details organised.",
     href: "/admin/events",
@@ -21,7 +27,7 @@ const workspaces = [
   },
 ];
 
-// Gives managers a focused starting point for the three core website workspaces.
+// Gives managers a focused starting point for the website workspaces.
 export function AdminDashboard({ productCount }: { productCount: number }) {
   return <AdminShell active="dashboard" productCount={productCount}>
     <header className="admin-topbar">

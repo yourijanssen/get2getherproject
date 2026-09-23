@@ -1,10 +1,12 @@
 "use client";
 
 import { useId, useRef, useState, type FormEvent } from "react";
-import { homeContent, type Language } from "@/lib/language";
+import type { Language } from "@/lib/language";
+import type { SiteCopy } from "@/lib/site-content-schema";
 
 type Props = {
   language: Language;
+  content: SiteCopy["text"];
   kind: "review" | "inquiry";
   topic?: string;
   detailed?: boolean;
@@ -16,8 +18,8 @@ export function ExperienceForm({
   kind,
   topic = "",
   detailed = false,
+  content: t,
 }: Props) {
-  const t = homeContent[language];
   const id = useId();
   const [state, setState] = useState<"idle" | "sending" | "success" | "error">(
     "idle",

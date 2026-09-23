@@ -2371,6 +2371,49 @@ p {
 }
 
 .diy-product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:42px}.diy-product-card{padding:24px;border:1px solid var(--line);background:var(--surface)}.diy-product-card>span{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}.diy-product-card h2{margin:14px 0 8px;font-size:28px}.diy-product-card p{margin:0;font-size:14px;line-height:1.55}.diy-product-card strong{display:block;margin-top:20px}.admin-page,.admin-login{width:min(100% - 48px,1100px);margin:64px auto}.admin-page header{margin-bottom:32px}.admin-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:32px}.admin-product-form,.admin-products{padding:28px;border:1px solid var(--line);background:var(--surface)}.admin-product-form{display:grid;gap:16px}.admin-product-form label{display:grid;gap:7px;font-size:13px;font-weight:700}.admin-product-form input,.admin-product-form textarea,.admin-product-form select{width:100%;padding:10px;border:1px solid var(--line);font:inherit}.admin-product-form textarea{min-height:100px}.admin-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.admin-check{grid-template-columns:auto 1fr;align-items:center}.admin-product-form button,.admin-products button{width:max-content;padding:10px 14px;border:0;background:var(--text);color:#fff;font:inherit;font-weight:700}.admin-products{display:grid;align-content:start;gap:10px}.admin-products article{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.admin-products article span{display:block;margin-top:5px;color:var(--muted);font-size:12px}.admin-products button{background:transparent;color:var(--text);border:1px solid var(--line)}
+.diy-product-grid {
+  gap: 24px;
+}
+.diy-product-card {
+  display: flex;
+  min-height: 310px;
+  flex-direction: column;
+  padding: 30px;
+  border: 1px solid #c7d9f8;
+  border-radius: 24px 24px 44px 24px;
+  background: #f8fbff;
+  box-shadow: 0 14px 30px rgb(40 88 172 / 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.diy-product-card:hover {
+  border-color: #2858ac;
+  box-shadow: 0 20px 38px rgb(40 88 172 / 0.14);
+  transform: translateY(-4px);
+}
+.diy-product-card > span {
+  width: max-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #2858ac;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.diy-product-card h2 {
+  margin: 20px 0 10px;
+  color: #2858ac;
+  font-size: clamp(26px, 2.3vw, 32px);
+}
+.diy-product-card p {
+  color: var(--muted);
+  font-size: 15px;
+}
+.diy-product-card strong {
+  margin-top: auto;
+  padding-top: 28px;
+  color: #2858ac;
+  font-size: 23px;
+}
 @media(max-width:760px){.diy-product-grid,.admin-grid,.admin-fields{grid-template-columns:1fr}.diy-product-grid{gap:14px}}
 .admin-login{max-width:420px}.admin-login form{display:grid;gap:16px;margin-top:28px;padding:28px;border:1px solid var(--line);background:var(--surface)}.admin-login label{display:grid;gap:7px;font-weight:700}.admin-login input{padding:10px;border:1px solid var(--line);font:inherit}.admin-login button{width:max-content;padding:10px 14px;border:0;background:var(--text);color:#fff;font:inherit;font-weight:700}
 
@@ -2407,6 +2450,29 @@ p {
 .admin-image-lightbox header button { min-height: 44px; padding: 8px 14px; border: 1px solid #d8dde5; border-radius: 6px; background: #fff; color: #172033; font-size: 14px; cursor: pointer; }
 .admin-image-lightbox-content > img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 140px); object-fit: contain; }
 .admin-editor-fields { display: grid; gap: 18px; min-width: 0; border: 0; padding: 0; margin: 0; }
+
+/* Keeps bilingual site copy readable alongside the section selector on all screen sizes. */
+.site-copy-intro { margin: 10px 0 0; color: var(--admin-muted); font-size: 14px; }
+.site-copy-layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; align-items: start; }
+.site-copy-sections { display: grid; gap: 6px; position: sticky; top: 24px; }
+.site-copy-sections button { border: 1px solid transparent; border-radius: 7px; padding: 12px; background: transparent; color: var(--admin-ink); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.site-copy-sections button[aria-current] { background: #fef3c7; border-color: #eab308; font-weight: 700; }
+.site-copy-sections button:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
+.site-copy-sections button:disabled:not([aria-current]) { opacity: .5; cursor: default; }
+.site-copy-sections p { margin: 12px 0; color: var(--admin-muted); font-size: 12px; line-height: 1.5; }
+.site-copy-editor { width: 100%; min-width: 0; }
+.site-copy-preview { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; font-size: 13px; }
+.site-copy-preview a { color: #1d4ed8; }
+.site-copy-field { padding-bottom: 22px; border-bottom: 1px solid var(--admin-line); }
+.site-copy-field h3 { margin: 0 0 14px; font: inherit; font-size: 15px; font-weight: 700; }
+.site-copy-field label > span { color: var(--admin-muted); font-size: 12px; }
+.site-copy-field textarea { resize: vertical; line-height: 1.6; }
+.static-page-body > p { white-space: pre-line; }
+.site-copy-save { position: sticky; bottom: 0; padding: 16px 0; background: var(--admin-card); border-top: 1px solid var(--admin-line); }
+.site-copy-save .admin-feedback { margin: 0 0 12px; min-height: 20px; }
+.site-copy-save button:disabled { opacity: .5; cursor: default; }
+@media (max-width: 1100px) { .site-copy-layout { grid-template-columns: 1fr; } .site-copy-sections { position: static; grid-template-columns: repeat(3, minmax(0, 1fr)); } .site-copy-sections p { grid-column: 1 / -1; } }
+@media (max-width: 620px) { .site-copy-sections { grid-template-columns: repeat(2, minmax(0, 1fr)); } .site-copy-save { position: static; } }
 .admin-content-list article { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; border-top: 1px solid var(--admin-line); }
 .admin-content-list article > div { min-width: 0; overflow-wrap: anywhere; }
 .admin-content-list p { margin: 4px 0; color: var(--admin-muted); font-size: 13px; }

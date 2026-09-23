@@ -3,19 +3,21 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/TransferNow-20260526jAAIYA6v/Logo-transparent-cropped.png";
-import { homeContent, type Language } from "@/lib/language";
+import type { Language } from "@/lib/language";
+import type { SiteCopy } from "@/lib/site-content-schema";
 
 // Renders the responsive navigation and keeps the language switch on the current view.
 export function SiteHeader({
   language,
   route,
+  content,
 }: {
   language: Language;
   route: string;
+  content: SiteCopy["text"];
 }) {
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
-  const content = homeContent[language];
   const primaryItems = content.navItems.filter(({ href }) =>
     ["/", "/events", "/diy-kits"].includes(href),
   );

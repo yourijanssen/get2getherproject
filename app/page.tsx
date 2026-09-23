@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExperienceSite } from "@/components/experience-site";
-import { homeContent, resolveLanguage } from "@/lib/language";
+import { resolveLanguage } from "@/lib/language";
+import { getSiteContent } from "@/lib/site-content";
 import { getManagedContent } from "@/lib/managed-content";
 
 export const dynamic = "force-dynamic";
@@ -14,14 +15,15 @@ export async function generateMetadata({
   return {
     title: "Get2Gether",
     description:
-      homeContent[resolveLanguage((await searchParams).lang)].metaDescription,
+      (await getSiteContent()).content[resolveLanguage((await searchParams).lang)].text.metaDescription,
   };
 }
 
 // Resolves language on the server before rendering the interactive experience.
 export default async function Home({ searchParams }: HomePageProps) {
-  const [events, extras] = await Promise.all([getManagedContent("events"), getManagedContent("extras")]);
+  const [events, extras, site] = await Promise.all([getManagedContent("events"), getManagedContent("extras"), getSiteContent()]);
+  const language = resolveLanguage((await searchParams).lang);
   return (
-    <ExperienceSite language={resolveLanguage((await searchParams).lang)} events={events} extras={extras} />
+    <ExperienceSite language={language} events={events} extras={extras} content={site.content[language]} />
   );
 }

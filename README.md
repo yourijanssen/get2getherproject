@@ -55,3 +55,20 @@ booking inventory is copied.
 
 Use `NEXT_DIST_DIR=.next-qa npm run build` to build independently of the normal
 development server. QA uses a separate temporary SQLite database.
+
+## Site content workspace
+
+`/admin/site-content` edits the home page, page titles, about/contact copy,
+navigation, footer, form labels and Extras resource links in Greek and English.
+Events, Extras records and DIY products keep their separate workspaces.
+
+Before deploying this feature, manually run
+`database/sql/20260922_site_content.sql` against the PostgreSQL database configured
+by `DATABASE_URL`. This additive, repeatable SQL seeds the existing website copy
+and never overwrites an existing `site_content` record. It has been applied to
+the database configured for local development; apply it separately to production.
+Public pages read this database record directly and require the migration.
+
+Changes publish when a manager saves a section. Both translations are required.
+The editor keeps unsaved text after errors and rejects stale saves when another
+manager has updated the content. Page previews open the saved public version.
