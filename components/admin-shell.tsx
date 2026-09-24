@@ -15,10 +15,10 @@ export function AdminShell({ active, children, productCount }: AdminShellProps) 
       <p className="admin-sidebar-label">Workspace</p>
       <nav>
         <Link href="/admin" className={`admin-nav-item${active === "dashboard" ? " admin-nav-item-active" : ""}`}>Dashboard</Link>
-        <Link href="/admin/site-content" className={`admin-nav-item${active === "site-content" ? " admin-nav-item-active" : ""}`}>Site content</Link>
-        <Link href="/admin/events" className={`admin-nav-item${active === "events" ? " admin-nav-item-active" : ""}`}>Events</Link>
+        <Link href="/admin/site-content" className={`admin-nav-item${active === "site-content" ? " admin-nav-item-active" : ""}`}>Pages & text</Link>
+        <Link href="/admin/events" className={`admin-nav-item${active === "events" ? " admin-nav-item-active" : ""}`}>Event listings</Link>
         <Link href="/admin/diy-products" className={`admin-nav-item${active === "diy-products" ? " admin-nav-item-active" : ""}`}>DIY products <b>{productCount}</b></Link>
-        <Link href="/admin/extras" className={`admin-nav-item${active === "extras" ? " admin-nav-item-active" : ""}`}>Extras</Link>
+        <Link href="/admin/extras" className={`admin-nav-item${active === "extras" ? " admin-nav-item-active" : ""}`}>Extra offerings</Link>
       </nav>
       <div className="admin-sidebar-bottom"><Link href="/?lang=en" className="admin-nav-item">View site</Link><p>Signed in as<br /><strong>manager</strong></p></div>
     </aside>

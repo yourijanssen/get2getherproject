@@ -20,7 +20,7 @@ export function ContentAdmin({ workspace, records, productCount }: { workspace: 
   const [uploading, setUploading] = useState(false);
   const locked = busy || uploading;
   const event = workspace === "events";
-  const title = event ? "Events" : "Extras";
+  const title = event ? "Event listings" : "Extra offerings";
 
   // Updates one draft field without altering the saved record.
   function update(key: keyof ContentRecord, value: string | string[] | number | boolean) {

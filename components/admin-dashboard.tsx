@@ -2,14 +2,14 @@ import { AdminShell } from "@/components/admin-shell";
 
 const workspaces = [
   {
-    title: "Site content",
-    description: "Edit page titles, the home page and website text in Greek and English.",
+    title: "Pages & text",
+    description: "Edit page headings, introductions, shared text and homepage images in Greek and English.",
     href: "/admin/site-content",
-    action: "Edit site content",
+    action: "Edit pages & text",
   },
   {
-    title: "Events",
-    description: "Keep upcoming gatherings and workshop details organised.",
+    title: "Event listings",
+    description: "Manage individual events: dates, times, posters, descriptions and publication.",
     href: "/admin/events",
     action: "Manage events",
   },
@@ -20,7 +20,7 @@ const workspaces = [
     action: "Manage DIY products",
   },
   {
-    title: "Extras",
+    title: "Extra offerings",
     description: "Plan gift cards and loyalty cards for the extras section.",
     href: "/admin/extras",
     action: "Manage extras",

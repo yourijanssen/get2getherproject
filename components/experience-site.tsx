@@ -8,7 +8,7 @@ import type { SitePageKey } from "@/lib/page-content";
 import type { Language } from "@/lib/language";
 import type { SiteCopy } from "@/lib/site-content-schema";
 import type { DiyProduct } from "@/lib/diy-products";
-import { heroImages, serviceImages } from "@/lib/workshops";
+import { serviceImages } from "@/lib/workshops";
 import type { ContentRecord } from "@/lib/managed-content";
 import flowerArt from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 29.png";
 
@@ -27,10 +27,19 @@ function localDateKey(date = new Date()) {
   ).padStart(2, "0")}`;
 }
 
-// Produces complete Sunday-first calendar weeks and associates dates with their workshop record.
+const calendarWeekStart = 1; // Monday, using JavaScript's Sunday-zero weekday index.
+
+// Moves one calendar month at a time, including across year boundaries and empty months.
+function shiftCalendarMonth(month: string, offset: number) {
+  const date = workshopDate(`${month}-01`);
+  date.setUTCMonth(date.getUTCMonth() + offset);
+  return date.toISOString().slice(0, 7);
+}
+
+// Produces complete Monday-first calendar weeks and associates dates with their workshop record.
 function calendarCells(month: string, workshops: Workshop[]) {
   const [year, monthNumber] = month.split("-").map(Number);
-  const firstWeekday = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
+  const firstWeekday = (new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay() - calendarWeekStart + 7) % 7;
   const daysInMonth = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
   const cellCount = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
 
@@ -64,6 +73,7 @@ export function ExperienceSite({
   content: SiteCopy;
 }) {
   const t = content.text;
+  const heroImages = content.heroImages;
   const workshops = events.map(item => ({ ...item, images: item.images.map(src => ({ src, width: 1080, height: 1080 })) }));
   // Selects the text belonging to the requested public language.
   function localized(item: ContentRecord) {
@@ -95,15 +105,7 @@ export function ExperienceSite({
   const [modal, setModal] = useState<Modal>(null);
   const currentDate = localDateKey();
   const currentMonth = currentDate.slice(0, 7);
-  const agendaMonths = [
-    ...new Set([
-      ...workshops.map((workshop) => workshop.date.slice(0, 7)),
-      currentMonth,
-    ]),
-  ].sort();
-  const [agendaMonthIndex, setAgendaMonthIndex] = useState(() =>
-    agendaMonths.indexOf(currentMonth),
-  );
+  const [agendaMonth, setAgendaMonth] = useState(currentMonth);
   const serviceRail = useRef<HTMLDivElement>(null);
   const [serviceRailPosition, setServiceRailPosition] = useState({
     atStart: true,
@@ -191,17 +193,19 @@ export function ExperienceSite({
       rail.removeEventListener("scroll", updateServiceRailPosition);
       resizeObserver.disconnect();
     };
-  }, [language]);
+  }, [language, route]);
 
-  // Moves directly between the start and end of the service list.
+  // Advances one card and clamps to the ends, revealing card four in one desktop click.
   function moveServices(direction: number) {
     const rail = serviceRail.current;
     if (rail) {
+      const cardWidth = rail.firstElementChild?.getBoundingClientRect().width ?? rail.clientWidth;
+      const gap = parseFloat(getComputedStyle(rail).columnGap) || 0;
+      const target = rail.scrollLeft + direction * (cardWidth + gap);
       rail.scrollTo({
-        left: direction > 0 ? rail.scrollWidth - rail.clientWidth : 0,
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "instant"
-          : "smooth",
+        left: Math.max(0, Math.min(rail.scrollWidth - rail.clientWidth, target)),
+        // Native smooth scrolling can stall when combined with mandatory scroll snapping.
+        behavior: "instant",
       });
     }
   }
@@ -213,7 +217,6 @@ export function ExperienceSite({
   const selectedText = selected ? localized(events[selectedIndex]) : { title: "", description: "" };
   const selectedExtra = extras.find(item => route === `extra/${item.slug}` || route === item.slug);
   const locale = language === "el" ? "el-GR" : "en-GB";
-  const agendaMonth = agendaMonths[agendaMonthIndex];
   const agendaCells = calendarCells(agendaMonth, workshops);
   const agendaTitle = new Intl.DateTimeFormat(locale, {
     month: "long",
@@ -222,7 +225,7 @@ export function ExperienceSite({
   }).format(workshopDate(`${agendaMonth}-01`));
   const weekdayLabels = Array.from({ length: 7 }, (_, day) =>
     new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(
-      new Date(Date.UTC(2026, 0, 4 + day)),
+      new Date(Date.UTC(2026, 0, 4 + calendarWeekStart + day)),
     ),
   );
   const formatWorkshopDate = (date: string) =>
@@ -278,7 +281,9 @@ export function ExperienceSite({
                     <Image
                       src={heroImages[slide]}
                       draggable={false}
-                      alt={t.workshops[[3, 1, 2][slide]].title}
+                      alt={`${t.eventsTitle} ${slide + 1}`}
+                      width={1280}
+                      height={1280}
                       priority
                       sizes="(max-width: 760px) 90vw, 43vw"
                     />
@@ -318,48 +323,52 @@ export function ExperienceSite({
                   <h2>{t.services}</h2>
                   <p>{t.servicesIntro}</p>
                 </div>
-                <div className="rail-controls">
-                  <button
-                    className="circle-button"
-                    onClick={() => moveServices(-1)}
-                    aria-label={t.previous}
-                    disabled={serviceRailPosition.atStart}
-                  >
-                    <Arrow reverse />
-                  </button>
-                  <button
-                    className="circle-button"
-                    onClick={() => moveServices(1)}
-                    aria-label={t.next}
-                    disabled={serviceRailPosition.atEnd}
-                  >
-                    <Arrow />
-                  </button>
-                </div>
               </div>
-              <div ref={serviceRail} className="service-rail">
-                {t.serviceNames.map((name, i) => (
-                  <a
-                    key={name}
-                    className="service-card"
-                    href={`${["/events", "/contact", "/extras", "/extras"][i]}?lang=${language}`}
-                  >
-                    <div className="service-image">
-                      <Image
-                        src={serviceImages[i]}
-                        alt=""
-                        sizes="(max-width: 760px) 80vw, 30vw"
-                      />
-                    </div>
-                    <div className="service-caption">
-                      <div>
-                        <h3>{name}</h3>
-                        <p>{t.serviceDescriptions[i]}</p>
+              <div className="service-carousel">
+                <button
+                  type="button"
+                  className="circle-button service-arrow service-arrow-previous"
+                  onClick={() => moveServices(-1)}
+                  aria-label={t.previous}
+                  aria-controls="experience-cards"
+                  disabled={serviceRailPosition.atStart}
+                >
+                  <Arrow reverse />
+                </button>
+                <button
+                  type="button"
+                  className="circle-button service-arrow service-arrow-next"
+                  onClick={() => moveServices(1)}
+                  aria-label={t.next}
+                  aria-controls="experience-cards"
+                  disabled={serviceRailPosition.atEnd}
+                >
+                  <Arrow />
+                </button>
+                <div ref={serviceRail} className="service-rail" id="experience-cards">
+                  {t.serviceNames.map((name, i) => (
+                    <a
+                      key={name}
+                      className="service-card"
+                      href={`${["/events", "/contact", "/extras", "/extras"][i]}?lang=${language}`}
+                    >
+                      <div className="service-image">
+                        <Image
+                          src={serviceImages[i]}
+                          alt=""
+                          sizes="(max-width: 760px) 80vw, 30vw"
+                        />
                       </div>
-                      <Arrow />
-                    </div>
-                  </a>
-                ))}
+                      <div className="service-caption">
+                        <div>
+                          <h3>{name}</h3>
+                          <p>{t.serviceDescriptions[i]}</p>
+                        </div>
+                        <Arrow />
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             </section>
             <section className="together-section">
@@ -401,23 +410,21 @@ export function ExperienceSite({
                   <button
                     className="agenda-today"
                     type="button"
-                    onClick={() => setAgendaMonthIndex(agendaMonths.indexOf(currentMonth))}
+                    onClick={() => setAgendaMonth(currentMonth)}
                     disabled={agendaMonth === currentMonth}
                   >
                     {t.calendarToday}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setAgendaMonthIndex((index) => index - 1)}
-                    disabled={agendaMonthIndex === 0}
+                    onClick={() => setAgendaMonth((month) => shiftCalendarMonth(month, -1))}
                     aria-label={t.calendarPreviousMonth}
                   >
                     <Arrow reverse />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setAgendaMonthIndex((index) => index + 1)}
-                    disabled={agendaMonthIndex === agendaMonths.length - 1}
+                    onClick={() => setAgendaMonth((month) => shiftCalendarMonth(month, 1))}
                     aria-label={t.calendarNextMonth}
                   >
                     <Arrow />
@@ -871,6 +878,10 @@ export function ExperienceSite({
           <small>
             © {new Date().getFullYear()} Get2Gether Project. {t.rights}
           </small>
+          <span className="footer-developer">
+            {language === "el" ? "Ανάπτυξη από" : "Developed by"}{" "}
+            <a href="https://yourijanssen.nl" target="_blank" rel="noopener noreferrer">Youri Janssen</a>
+          </span>
         </div>
       </footer>
       <dialog

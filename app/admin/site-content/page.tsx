@@ -5,7 +5,7 @@ import { getDiyProducts } from "@/lib/diy-products";
 import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Site content | Get2Gether Manager" };
+export const metadata = { title: "Pages & text | Get2Gether Manager" };
 
 // Loads the authenticated site editor with the current persisted bilingual copy.
 export default async function SiteContentPage() {

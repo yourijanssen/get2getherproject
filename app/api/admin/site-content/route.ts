@@ -1,6 +1,7 @@
 import { isAdmin } from "@/lib/admin-auth";
 import { getProductSql } from "@/lib/diy-products";
 import { getSiteContent } from "@/lib/site-content";
+import { isContentImage, MAX_CONTENT_IMAGES } from "@/lib/content-images";
 import { contentSections, getSectionFields, writeContentField, type ContentSection } from "@/lib/site-content-schema";
 
 export const runtime = "nodejs";
@@ -15,6 +16,9 @@ export async function PATCH(request: Request) {
   try { input = JSON.parse(raw); } catch { return Response.json({ error: "Invalid content." }, { status: 400 }); }
   if (!input || !contentSections.some(section => section.id === input.section) || !Number.isSafeInteger(input.revision)) return Response.json({ error: "Invalid section or revision." }, { status: 400 });
   const fields = getSectionFields(input.section as ContentSection);
+  if (input.section === "home" && (!Array.isArray(input.heroImages) || input.heroImages.length < 1 || input.heroImages.length > MAX_CONTENT_IMAGES || !input.heroImages.every(isContentImage))) {
+    return Response.json({ error: "Add between 1 and 12 valid homepage images." }, { status: 400 });
+  }
   for (const language of ["el", "en"] as const) {
     const values = input.values?.[language];
     if (!values || typeof values !== "object" || Array.isArray(values) || Object.keys(values).length !== fields.length) return Response.json({ error: "Include all fields in Greek and English." }, { status: 400 });
@@ -30,6 +34,10 @@ export async function PATCH(request: Request) {
   try {
     const current = await getSiteContent();
     const content = structuredClone(current.content);
+    if (input.section === "home") {
+      content.el.heroImages = [...input.heroImages];
+      content.en.heroImages = [...input.heroImages];
+    }
     for (const language of ["el", "en"] as const) for (const field of fields) writeContentField(content[language], field.path, input.values[language][field.path].trim());
     const sql = getProductSql();
     if (!sql) return Response.json({ error: "Site content database is not configured." }, { status: 503 });

@@ -1,7 +1,7 @@
 import { homeContent, type Language } from "@/lib/language";
 import { sitePages } from "@/lib/page-content";
 
-export type SiteCopy = { text: typeof homeContent.en; pages: typeof sitePages.en };
+export type SiteCopy = { text: typeof homeContent.en; pages: typeof sitePages.en; heroImages: string[] };
 export type SiteContentDocument = Record<Language, SiteCopy>;
 export type SiteContentRecord = { content: SiteContentDocument; revision: number };
 export type ContentField = { path: string; label: string; multiline: boolean; url: boolean };
@@ -9,10 +9,10 @@ export type ContentField = { path: string; label: string; multiline: boolean; ur
 export const contentSections = [
   { id: "home", label: "Home page", description: "Main heading, introduction, experiences and the story section.", href: "/" },
   { id: "about", label: "About", description: "Your story and the paragraphs on the about page.", href: "/about" },
-  { id: "events", label: "Events", description: "Page headings, calendar labels and introductory text. Manage individual events in Events.", href: "/events" },
+  { id: "events", label: "Events page text", description: "Page title, introduction and calendar labels.", href: "/events" },
   { id: "private", label: "Private events", description: "Introductions and calls to action for private gatherings.", href: "/#private-events" },
-  { id: "diy", label: "DIY kits", description: "Page title and introduction. Manage individual products in DIY products.", href: "/diy-kits" },
-  { id: "extras", label: "Extras", description: "Page heading and resource links. Manage gift and loyalty cards in Extras.", href: "/extras" },
+  { id: "diy", label: "DIY kits page text", description: "Page title and introduction.", href: "/diy-kits" },
+  { id: "extras", label: "Extras page text", description: "Page heading, introduction and resource links.", href: "/extras" },
   { id: "contact", label: "Contact", description: "Contact page heading and introductory text.", href: "/contact" },
   { id: "privacy", label: "Privacy policy", description: "Page title, introduction and policy text.", href: "/privacy-policy" },
   { id: "shared", label: "Navigation & footer", description: "Shared menu labels, buttons and footer text.", href: "/" },
