@@ -2,7 +2,9 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { AdminShell } from "@/components/admin-shell";
+import { ContentImageUploader } from "@/components/content-image-uploader";
 import type { DiyProduct } from "@/lib/diy-products";
+import { useDraftProtection, useDraftRecovery } from "@/components/use-draft-protection";
 
 const blank = {
   slug: "", titleEn: "", titleEl: "", descriptionEn: "", descriptionEl: "",
@@ -30,9 +32,16 @@ function formFromProduct(product: DiyProduct) {
 export function DiyAdmin({ products }: { products: DiyProduct[] }) {
   const [items, setItems] = useState(products);
   const [form, setForm] = useState(blank);
+  const [baseline, setBaseline] = useState(blank);
+  const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
+  const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
+  const { canLeave, protectNavigation } = useDraftProtection(dirty, busy, setMessage);
+  useDraftRecovery("diy-products", { form, baseline, editingId }, dirty, recovered => {
+    if (recovered.form && recovered.baseline) { setForm(recovered.form); setBaseline(recovered.baseline); setEditingId(recovered.editingId); setMessage("Your unsaved draft was restored."); }
+  });
   const visibleCount = items.filter((item) => item.isActive).length;
   const listedItems = useMemo(() => items.filter((item) => `${item.titleEn} ${item.titleEl} ${item.slug}`.toLowerCase().includes(query.toLowerCase())), [items, query]);
   const update = (key: keyof typeof blank, value: string | number | boolean) => setForm((current) => ({ ...current, [key]: value }));
@@ -40,8 +49,11 @@ export function DiyAdmin({ products }: { products: DiyProduct[] }) {
   // Creates a new record or persists edits through the protected product API.
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
     const isEditing = editingId !== null;
+    setBusy(true);
     setMessage(isEditing ? "Saving changes…" : "Saving product…");
+    try {
     const response = await fetch("/api/admin/diy-products", { method: isEditing ? "PATCH" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(isEditing ? { ...form, id: editingId } : form) });
     if (!response.ok) { setMessage("The product could not be saved. Check all fields and the unique slug."); return; }
     if (isEditing) {
@@ -51,33 +63,51 @@ export function DiyAdmin({ products }: { products: DiyProduct[] }) {
       setItems((current) => [...current, { ...form, id, imageUrl: form.imageUrl || null } as DiyProduct]);
     }
     setForm(blank);
+    setBaseline(blank);
     setEditingId(null);
     setMessage(isEditing ? "Changes saved." : "Product saved.");
+    } catch {
+      setMessage("Connection failed. Your draft is still here; please try again.");
+    } finally { setBusy(false); }
   }
 
   // Publishes or hides a product without changing its remaining details.
   async function toggle(product: DiyProduct) {
+    if (!canLeave()) return;
+    setBusy(true);
+    try {
     const response = await fetch("/api/admin/diy-products", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...product, isActive: !product.isActive }) });
-    if (response.ok) setItems((current) => current.map((item) => item.id === product.id ? { ...item, isActive: !item.isActive } : item));
+    if (response.ok) {
+      const updated = { ...product, isActive: !product.isActive };
+      setItems((current) => current.map((item) => item.id === product.id ? updated : item));
+      if (editingId === product.id) { setForm(formFromProduct(updated)); setBaseline(formFromProduct(updated)); }
+    } else setMessage("Could not change publication status. Please try again.");
+    } catch { setMessage("Connection failed. Please try again."); }
+    finally { setBusy(false); }
   }
 
   // Opens a product in the editor so every saved field can be maintained.
   function edit(product: DiyProduct) {
+    if (!canLeave()) return;
     setEditingId(product.id);
     setForm(formFromProduct(product));
+    setBaseline(formFromProduct(product));
     setMessage("");
     window.setTimeout(() => document.querySelector("#product-editor")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
   // Returns the editor to a clean new-product state.
   function startNewProduct() {
+    if (!canLeave()) return;
     setEditingId(null);
     setForm(blank);
+    setBaseline(blank);
     setMessage("");
   }
 
-  return <AdminShell active="diy-products" productCount={items.length}>
-      <header className="admin-topbar"><div><p className="admin-eyebrow">Catalogue</p><h1>DIY products</h1></div><a href="#product-editor" className="admin-primary-action" onClick={startNewProduct}><span aria-hidden="true">+</span> New product</a></header>
+  return <div onClickCapture={protectNavigation}><AdminShell active="diy-products" productCount={items.length}>
+      <header className="admin-topbar"><div><p className="admin-eyebrow">Catalogue</p><h1>DIY products</h1></div><button type="button" disabled={busy} className="admin-primary-action" onClick={startNewProduct}><span aria-hidden="true">+</span> New product</button></header>
+      <p className="admin-feedback" role="status">{message || (dirty ? "Unsaved changes" : "")}</p>
       <section className="admin-stat-grid" aria-label="Catalogue summary"><article><span>All products</span><strong>{items.length}</strong><small>In your catalogue</small></article><article><span>Visible products</span><strong>{visibleCount}</strong><small>Shown on the DIY page</small></article><article><span>Hidden products</span><strong>{items.length - visibleCount}</strong><small>Not public yet</small></article></section>
       <section className="admin-resource-card" id="products">
         <div className="admin-resource-header"><div><h2>Products</h2><p>Manage what visitors see on the DIY kits page.</p></div><label className="admin-search"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search products" aria-label="Search products" /></label></div>
@@ -87,13 +117,16 @@ export function DiyAdmin({ products }: { products: DiyProduct[] }) {
       <section className="admin-form-card" id="product-editor">
         <div className="admin-form-heading"><div><p className="admin-eyebrow">{editingId ? "Edit record" : "New record"}</p><h2>{editingId ? "Edit product" : "Add a product"}</h2><p>Both English and Greek details are required for the public website.</p></div></div>
         <form className="admin-product-form" onSubmit={submit}>
+          <fieldset disabled={busy} className="admin-editor-fields">
           <label>Slug<input value={form.slug} onChange={(event) => update("slug", event.target.value)} placeholder="flower-bar-kit" required /></label>
           <div className="admin-fields"><label>English title<input value={form.titleEn} onChange={(event) => update("titleEn", event.target.value)} required /></label><label>Greek title<input value={form.titleEl} onChange={(event) => update("titleEl", event.target.value)} required /></label></div>
           <div className="admin-fields"><label>English description<textarea value={form.descriptionEn} onChange={(event) => update("descriptionEn", event.target.value)} required /></label><label>Greek description<textarea value={form.descriptionEl} onChange={(event) => update("descriptionEl", event.target.value)} required /></label></div>
+          <ContentImageUploader images={form.imageUrl ? [form.imageUrl] : []} disabled={busy} maxImages={1} title="Product photo" onChange={images => update("imageUrl", images[0] || "")} onBusy={setBusy} />
           <div className="admin-fields"><label>Price in cents<input type="number" min="0" value={form.priceCents} onChange={(event) => update("priceCents", Number(event.target.value))} required /></label><label>Status<select value={form.stockStatus} onChange={(event) => update("stockStatus", event.target.value)}><option value="in_stock">In stock</option><option value="coming_soon">Coming soon</option><option value="sold_out">Sold out</option></select></label></div>
           <div className="admin-fields"><label>Sort order<input type="number" value={form.sortOrder} onChange={(event) => update("sortOrder", Number(event.target.value))} /></label><label className="admin-check"><input type="checkbox" checked={form.isActive} onChange={(event) => update("isActive", event.target.checked)} /> Visible on the DIY page</label></div>
-          <div className="admin-form-actions"><button type="submit" className="admin-primary-action">{editingId ? "Save changes" : "Create product"}</button>{editingId && <button type="button" className="admin-secondary-action" onClick={startNewProduct}>Cancel editing</button>}{message && <p aria-live="polite">{message}</p>}</div>
+          <div className="admin-form-actions"><button type="submit" className="admin-primary-action">{busy ? "Saving…" : editingId ? "Save changes" : "Create product"}</button>{(editingId || dirty) && <button type="button" className="admin-secondary-action" onClick={() => { if (dirty && !window.confirm("Discard your unsaved changes?")) return; setForm(blank); setBaseline(blank); setEditingId(null); setMessage(""); }}>{dirty ? "Discard changes" : "Cancel editing"}</button>}{message && <p aria-live="polite">{message}</p>}</div>
+          </fieldset>
         </form>
       </section>
-  </AdminShell>;
+  </AdminShell></div>;
 }

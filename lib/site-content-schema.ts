@@ -10,11 +10,10 @@ export const contentSections = [
   { id: "home", label: "Home page", description: "Main heading, introduction, experiences and the story section.", href: "/" },
   { id: "about", label: "About", description: "Your story and the paragraphs on the about page.", href: "/about" },
   { id: "events", label: "Events page text", description: "Page title, introduction and calendar labels.", href: "/events" },
-  { id: "private", label: "Private events", description: "Introductions and calls to action for private gatherings.", href: "/#private-events" },
   { id: "diy", label: "DIY kits page text", description: "Page title and introduction.", href: "/diy-kits" },
   { id: "extras", label: "Extras page text", description: "Page heading, introduction and resource links.", href: "/extras" },
   { id: "contact", label: "Contact", description: "Contact page heading and introductory text.", href: "/contact" },
-  { id: "privacy", label: "Privacy policy", description: "Page title, introduction and policy text.", href: "/privacy-policy" },
+  { id: "privacy", label: "Privacy policy", description: "Page title, introduction and policy text. Separate paragraphs with blank lines; start section headings with ## followed by a space.", href: "/privacy-policy" },
   { id: "shared", label: "Navigation & footer", description: "Shared menu labels, buttons and footer text.", href: "/" },
   { id: "forms", label: "Forms & reviews", description: "Form labels, review headings and confirmation messages.", href: "/#reviews" },
 ] as const;
@@ -24,12 +23,11 @@ const groups: Partial<Record<ContentSection, string[]>> = {
   home: ["metaDescription", "heading", "headingAccent", "intro", "heroCta", "storyCta", "services", "servicesIntro", "serviceNames", "serviceDescriptions", "togetherTitle", "togetherBody"],
   about: ["aboutTitle", "aboutLead", "aboutParagraphs"],
   events: ["eventsTitle", "eventsIntro", "upcomingEventsTitle", "pastEventsTitle", "pastEventsIntro", "noUpcomingEvents", "calendarTitle", "calendarIntro", "calendarToday", "calendarPreviousMonth", "calendarNextMonth", "calendarDate", "calendarTime", "calendarNoEvents", "past", "back", "upcoming", "upcomingBody", "interest", "archiveNote", "notFound"],
-  private: ["privateTitle", "privateIntro", "privateBody", "customTitle", "customBody", "curatedTitle", "curatedBody"],
   extras: ["linktreeTitle", "linktreeIntro", "linktreeLinks"],
   contact: ["contactTitle", "contactBody", "contactEmail", "contactPhone"],
   forms: ["reviewTitle", "reviewIntro", "reviewSubmit", "rating", "ratingUnit", "experience", "name", "email", "phone", "message", "submit", "sending", "error", "success", "reviewSuccess", "privacy", "inquiryTitle", "inquiryIntro", "date", "guests", "location", "setting", "choose", "outdoor", "indoor", "both", "budget", "activity", "food", "foodOptions", "occasion"],
 };
-const excluded = new Set(["workshops", "giftTitle", "giftBody", "loyaltyTitle", "loyaltyBody", "switchLabel"]);
+const excluded = new Set(["privateTitle", "privateIntro", "privateBody", "customTitle", "customBody", "curatedTitle", "curatedBody", "workshops", "giftTitle", "giftBody", "loyaltyTitle", "loyaltyBody", "switchLabel"]);
 const labels: Record<string, string> = { heading: "Main heading", headingAccent: "Main heading — second line", intro: "Introduction", metaDescription: "Search description", heroCta: "Workshop button", storyCta: "About button", href: "Link URL", body: "Body text" };
 
 // Turns the existing content structure into named fields, retaining fixed list sizes and routes.
@@ -51,7 +49,8 @@ export function getSectionFields(section: ContentSection): ContentField[] {
   const fields = keys.flatMap(key => fieldsFor(homeContent.en[key as keyof typeof homeContent.en], `text.${key}`, labels[key] || key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, c => c.toUpperCase())));
   const page = section === "diy" ? "diy-kits" : section === "privacy" ? "privacy-policy" : section === "extras" ? "extras" : null;
   if (page) fields.unshift(...fieldsFor(section === "extras" ? { title: sitePages.en.extras.title, intro: sitePages.en.extras.intro } : sitePages.en[page], `pages.${page}`));
-  return fields;
+  // Keep dormant private-event copy in the database without exposing it in the editor.
+  return fields.filter(field => !["text.serviceNames.1", "text.serviceDescriptions.1"].includes(field.path));
 }
 
 // Reads a schema-approved text path without accepting arbitrary property access.

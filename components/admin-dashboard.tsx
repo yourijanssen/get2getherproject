@@ -1,6 +1,7 @@
 import { AdminShell } from "@/components/admin-shell";
 
 const workspaces = [
+  { title: "Inquiry inbox", description: "Read workshop and private event requests and track their progress.", href: "/admin/inquiries", action: "Open inbox" },
   {
     title: "Pages & text",
     description: "Edit page headings, introductions, shared text and homepage images in Greek and English.",

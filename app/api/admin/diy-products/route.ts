@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { isAdmin } from "@/lib/admin-auth";
+import { isContentImage } from "@/lib/content-images";
 import { getDiyProducts, getProductSql } from "@/lib/diy-products";
 
 export const runtime = "nodejs";
@@ -30,7 +31,7 @@ function cleanProduct(input: ProductInput) {
   const descriptionEn = text(input.descriptionEn, 1000);
   const descriptionEl = text(input.descriptionEl, 1000);
   const imageUrl = input.imageUrl ? text(input.imageUrl, 500) : null;
-  if (!titleEn || !titleEl || !descriptionEn || !descriptionEl) return null;
+  if (!titleEn || !titleEl || !descriptionEn || !descriptionEl || (imageUrl && !isContentImage(imageUrl))) return null;
   if (!Number.isInteger(input.priceCents) || input.priceCents! < 0 || input.priceCents! > 1000000)
     return null;
   if (!['in_stock', 'coming_soon', 'sold_out'].includes(String(input.stockStatus)))

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Instrument_Serif, Fraunces, Literata } from "next/font/google";
 import "./globals.css";
 
@@ -29,12 +30,13 @@ export const metadata: Metadata = {
 };
 
 // Shares self-hosted typography across both language variants.
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const language = (await headers()).get("x-site-language") === "en" ? "en" : "el";
   return (
     <html
-      lang="el"
+      lang={language}
       className={`${instrument.variable} ${brand.variable} ${greekSerif.variable}`}
     >
       <body>{children}</body>

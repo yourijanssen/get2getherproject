@@ -1,5 +1,3 @@
-import { DatabaseSync } from "node:sqlite";
-import { existsSync } from "node:fs";
 import { getProductSql } from "@/lib/diy-products";
 
 export const runtime = "nodejs";
@@ -121,50 +119,25 @@ export async function POST(request: Request) {
       return Response.json({ error: "Storage unavailable" }, { status: 503 });
     }
   }
-  const databasePath =
-    process.env.GET2GETHER_DATABASE_PATH || "./data/get2gether.sqlite";
-  if (!existsSync(databasePath))
-    return Response.json({ error: "Storage unavailable" }, { status: 503 });
-  let db: DatabaseSync | undefined;
+  const inquiryType = body.inquiryType ?? (details.guests || details.location ? "private" : "workshop");
+  if (!["workshop", "private"].includes(String(inquiryType))) {
+    return Response.json({ error: "Invalid inquiry type" }, { status: 400 });
+  }
+  const sql = getProductSql();
+  if (!sql) return Response.json({ error: "Storage unavailable" }, { status: 503 });
   try {
-    db = new DatabaseSync(databasePath);
-    db.exec("PRAGMA busy_timeout = 5000; BEGIN IMMEDIATE");
-    const existing = db
-      .prepare("SELECT id FROM submissions WHERE id = ? AND email = ?")
-      .get(submissionId, email);
-    if (existing) {
-      db.exec("COMMIT");
-      return Response.json({ saved: true });
-    }
-    const count = db
-      .prepare(
-        "SELECT count(*) AS total FROM submissions WHERE email = ? AND created_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 hour')",
-      )
-      .get(email) as { total: number };
-    if (count.total >= 5) {
-      db.exec("ROLLBACK");
-      return Response.json(
-        { error: "Please try again later" },
-        { status: 429 },
-      );
-    }
-    db.prepare(
-      "INSERT INTO submissions (id, kind, language, name, email, message, rating, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(
-      submissionId,
-      String(kind),
-      String(language),
-      name,
-      email,
-      message,
-      kind === "review" ? Number(rating) : null,
-      JSON.stringify(details),
-    );
-    db.exec("COMMIT");
-    return Response.json({ saved: true }, { status: 201 });
+    // Keep retries idempotent and serialize the per-email hourly limit in PostgreSQL.
+    const results = await sql.transaction([
+      sql`SELECT pg_advisory_xact_lock(hashtext(${email}))`,
+      sql`SELECT id FROM site_inquiries WHERE id = ${submissionId}::uuid AND email = ${email}`,
+      sql`INSERT INTO site_inquiries (id, language, inquiry_type, name, email, message, details)
+        SELECT ${submissionId}::uuid, ${String(language)}, ${String(inquiryType)}, ${name}, ${email}, ${message}, ${JSON.stringify(details)}::jsonb
+        WHERE (SELECT count(*) FROM site_inquiries WHERE email = ${email} AND created_at > now() - interval '1 hour') < 5
+        ON CONFLICT (id) DO NOTHING RETURNING id`,
+    ]);
+    if (results[1].length || results[2].length) return Response.json({ saved: true }, { status: results[2].length ? 201 : 200 });
+    return Response.json({ error: "Please try again later" }, { status: 429 });
   } catch {
     return Response.json({ error: "Storage unavailable" }, { status: 503 });
-  } finally {
-    db?.close();
   }
 }

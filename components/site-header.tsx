@@ -25,12 +25,8 @@ export function SiteHeader({
   const secondaryItems = content.navItems.filter(({ href }) =>
     ["/extras", "/about", "/contact"].includes(href),
   );
-  // Keep hash-based detail views on their existing page when switching languages.
+  // Switch language on the same server-rendered route, including event/extra details.
   const currentPath = usePathname();
-  const currentHash = route === "home" || route !== currentPath.slice(1) ? `#${route}` : "";
-  useEffect(() => {
-    document.documentElement.lang = language;
-  }, [language]);
   useEffect(() => {
     // Escape returns focus to the mobile menu trigger.
     function onKey(event: KeyboardEvent) {
@@ -98,7 +94,7 @@ export function SiteHeader({
         <div className="nav-link-list nav-secondary">
           {secondaryItems.map((item) => {
             const page = item.href.slice(1);
-            const active = route === page;
+            const active = route === page || (page === "extras" && route.startsWith("extra/"));
             return (
               <a
                 key={item.href}
@@ -114,7 +110,7 @@ export function SiteHeader({
         </div>
         <div className="language-switch" aria-label={content.languageLabel}>
           <a
-            href={`${currentPath}?lang=el${currentHash}`}
+            href={`${currentPath}?lang=el`}
             className={language === "el" ? "is-active" : undefined}
             aria-current={language === "el" ? "true" : undefined}
             onClick={() => setOpen(false)}
@@ -122,7 +118,7 @@ export function SiteHeader({
             ελ
           </a>
           <a
-            href={`${currentPath}?lang=en${currentHash}`}
+            href={`${currentPath}?lang=en`}
             className={language === "en" ? "is-active" : undefined}
             aria-current={language === "en" ? "true" : undefined}
             onClick={() => setOpen(false)}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type MouseEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useDraftProtection, useDraftRecovery } from "@/components/use-draft-protection";
 import { AdminShell } from "@/components/admin-shell";
 import { ContentImageUploader } from "@/components/content-image-uploader";
 import { contentSections, getSectionFields, readContentField, writeContentField, type ContentSection, type SiteContentRecord } from "@/lib/site-content-schema";
@@ -26,12 +27,12 @@ export function SiteContentAdmin({ record, productCount }: { record: SiteContent
   const fields = getSectionFields(section);
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved.content);
 
-  useEffect(() => {
-    // Warns before leaving the page while there is unsaved text.
-    function warn(event: BeforeUnloadEvent) { event.preventDefault(); event.returnValue = ""; }
-    if (dirty) window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  const { protectNavigation } = useDraftProtection(dirty, locked, message => { setFailed(true); setMessage(message); });
+  useDraftRecovery("site-content", { draft, saved, section }, dirty, recovered => {
+    if (recovered.draft && recovered.saved && contentSections.some(item => item.id === recovered.section)) {
+      setDraft(recovered.draft); setSaved(recovered.saved); setSection(recovered.section); setMessage("Your unsaved draft was restored.");
+    }
+  });
 
   // Changes one language without discarding the other language or saved sections.
   function update(language: "el" | "en", path: string, value: string) {
@@ -43,16 +44,6 @@ export function SiteContentAdmin({ record, productCount }: { record: SiteContent
   function updateHeroImages(images: string[]) {
     setDraft(current => ({ ...current, el: { ...current.el, heroImages: images }, en: { ...current.en, heroImages: images } }));
     setMessage("");
-  }
-
-  // Blocks in-app links that would discard a draft; saved previews open in a separate tab.
-  function protectDraft(event: MouseEvent<HTMLDivElement>) {
-    const link = (event.target as HTMLElement).closest("a");
-    if (dirty && link && link.target !== "_blank") {
-      event.preventDefault();
-      setFailed(true);
-      setMessage("Save or discard your changes before leaving this workspace.");
-    }
   }
 
   // Publishes only the current section and adopts the database's returned revision.
@@ -74,7 +65,7 @@ export function SiteContentAdmin({ record, productCount }: { record: SiteContent
     } finally { setBusy(false); }
   }
 
-  return <div onClickCapture={protectDraft}><AdminShell active="site-content" productCount={productCount}>
+  return <div onClickCapture={protectNavigation}><AdminShell active="site-content" productCount={productCount}>
     <header className="admin-topbar"><div><p className="admin-eyebrow">Workspace</p><h1>Pages & text</h1><p className="site-copy-intro">Page headings, introductions, shared text and homepage images.</p></div></header>
     <div className="site-copy-layout">
       <nav className="site-copy-sections" aria-label="Content sections">
@@ -94,7 +85,7 @@ export function SiteContentAdmin({ record, productCount }: { record: SiteContent
           </fieldset>
           <div className="site-copy-save">
             <p className="admin-feedback" role={failed ? "alert" : "status"}>{message || (dirty ? "Unsaved changes" : "All changes saved")}</p>
-            <div className="admin-form-actions"><button className="admin-primary-action" type="submit" disabled={locked || !dirty}>{busy ? "Saving…" : "Save changes"}</button><button className="admin-secondary-action" type="button" disabled={locked || !dirty} onClick={() => { setDraft(saved.content); setMessage(""); }}>Discard changes</button></div>
+            <div className="admin-form-actions"><button className="admin-primary-action" type="submit" disabled={locked || !dirty}>{busy ? "Saving…" : "Save changes"}</button><button className="admin-secondary-action" type="button" disabled={locked || !dirty} onClick={() => { if (!window.confirm("Discard your unsaved changes?")) return; setDraft(saved.content); setMessage(""); }}>Discard changes</button></div>
           </div>
         </form>
       </section>

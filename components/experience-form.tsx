@@ -42,6 +42,7 @@ export function ExperienceForm({
           ...fields,
           language,
           kind,
+          inquiryType: detailed ? "private" : "workshop",
           rating,
           submissionId: submissionId.current,
         }),
@@ -211,7 +212,7 @@ export function ExperienceForm({
           Website
           <input name="website" tabIndex={-1} autoComplete="off" />
         </label>
-        <p className="form-privacy">{t.privacy}</p>
+        <p className="form-privacy">{t.privacy}{" "}<a href={`/privacy-policy?lang=${language}`} target="_blank" rel="noopener noreferrer">{t.navItems.find(item => item.href === "/privacy-policy")?.label}<span aria-hidden="true"> ↗</span><span className="sr-only">{language === "el" ? " (ανοίγει σε νέα καρτέλα)" : " (opens in a new tab)"}</span></a></p>
         {state === "error" && (
           <p className="form-error" role="alert">
             {t.error}

@@ -19,6 +19,32 @@ import flowerArt from "@/assets/TransferNow-20260526jAAIYA6v/2gether - 29.png";
 type Modal = { topic: string; detailed: boolean } | null;
 type Workshop = Omit<ContentRecord, "images"> & { images: { src: string; width: number; height: number }[] };
 
+// Provides localized labels for the structured decision information on an event.
+function eventDetailLabels(language: Language) {
+  return language === "el"
+    ? { location: "Τοποθεσία", price: "Τιμή", materials: "Περιλαμβάνονται", availability: "Διαθεσιμότητα", available: "Διαθέσιμο", limited: "Περιορισμένες θέσεις", sold_out: "Εξαντλήθηκε", free: "Δωρεάν" }
+    : { location: "Location", price: "Price", materials: "Included materials", availability: "Availability", available: "Available", limited: "Limited availability", sold_out: "Sold out", free: "Free" };
+}
+
+// Selects the saved translation for an event detail, falling back only to the other saved language.
+function localizedEventDetail(english: string | undefined, greek: string | undefined, language: Language) {
+  return language === "el" ? greek?.trim() || english?.trim() || "" : english?.trim() || greek?.trim() || "";
+}
+
+// Returns the public, localized label for each catalogue availability state.
+function diyStockLabel(stockStatus: DiyProduct["stockStatus"], language: Language) {
+  const labels = language === "el"
+    ? { in_stock: "Διαθέσιμο", coming_soon: "Σύντομα διαθέσιμο", sold_out: "Εξαντλήθηκε" }
+    : { in_stock: "In stock", coming_soon: "Coming soon", sold_out: "Sold out" };
+
+  return labels[stockStatus];
+}
+
+// Gives every DIY product a direct path to a prefilled availability inquiry.
+function diyInquiryLabel(language: Language) {
+  return language === "el" ? "Ρωτήστε για διαθεσιμότητα" : "Check availability";
+}
+
 // Uses vector geometry so mobile emoji fonts cannot change the decorative sun.
 function DecorativeSun() {
   return <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true" focusable="false" style={{ display: "block" }}>
@@ -48,7 +74,7 @@ function shiftCalendarMonth(month: string, offset: number) {
   return date.toISOString().slice(0, 7);
 }
 
-// Produces complete Monday-first calendar weeks and associates dates with their workshop record.
+// Produces complete Monday-first calendar weeks and groups every event scheduled for a date.
 function calendarCells(month: string, workshops: Workshop[]) {
   const [year, monthNumber] = month.split("-").map(Number);
   const firstWeekday = (new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay() - calendarWeekStart + 7) % 7;
@@ -63,12 +89,12 @@ function calendarCells(month: string, workshops: Workshop[]) {
     return {
       date,
       day,
-      workshop: workshops.find((item) => item.date === date) as Workshop | undefined,
+      workshops: workshops.filter((item) => item.date === date).sort((a, b) => a.startTime.localeCompare(b.startTime)),
     };
   });
 }
 
-// Preserves shareable hash routes and browser back/forward navigation, including old section URLs.
+// Renders server-selected pages and retains compatibility with historical bookmarks.
 export function ExperienceSite({
   language,
   initialRoute = "home",
@@ -93,7 +119,7 @@ export function ExperienceSite({
   function localized(item: ContentRecord | Workshop) {
     return localizeContent(item, language);
   }
-  const [route, setRoute] = useState(initialRoute);
+  const route = initialRoute;
   const [slide, setSlide] = useState(0);
   const heroGesture = useRef<{ id: number; x: number; y: number } | null>(null);
 
@@ -120,37 +146,81 @@ export function ExperienceSite({
   const currentDate = localDateKey();
   const currentMonth = currentDate.slice(0, 7);
   const [agendaMonth, setAgendaMonth] = useState(currentMonth);
+  const agendaGesture = useRef<{ id: number; x: number; y: number } | null>(null);
+  const suppressAgendaClick = useRef(false);
+
+  // Tracks one touch or pen without interfering with ordinary taps.
+  function startAgendaSwipe(event: PointerEvent<HTMLDivElement>) {
+    suppressAgendaClick.current = false;
+    agendaGesture.current = event.isPrimary && event.pointerType !== "mouse"
+      ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+  }
+
+  // Captures horizontal gestures only; vertical gestures remain native page scrolling.
+  function trackAgendaSwipe(event: PointerEvent<HTMLDivElement>) {
+    const gesture = agendaGesture.current;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = Math.abs(event.clientX - gesture.x);
+    const dy = Math.abs(event.clientY - gesture.y);
+    if (dy > 12 && dy > dx) agendaGesture.current = null;
+    else if (dx > 12 && dx > dy * 1.5) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      suppressAgendaClick.current = true;
+    }
+  }
+
+  // Advances exactly one month for a deliberate swipe, including year boundaries.
+  function finishAgendaSwipe(event: PointerEvent<HTMLDivElement>) {
+    const gesture = agendaGesture.current;
+    agendaGesture.current = null;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    suppressAgendaClick.current = true;
+    setAgendaMonth(month => shiftCalendarMonth(month, dx < 0 ? 1 : -1));
+  }
   const [serviceViewport, serviceCarousel] = useEmblaCarousel({ loop: true, align: "start" });
   const dialog = useRef<HTMLDialogElement>(null);
   const main = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // Normalize historical anchor names while retaining bookmarked workshop links.
+    // Fragments never reach the server, so migrate old bookmarks to real page URLs here.
     function syncRoute() {
-      const hash = window.location.hash.slice(1) || initialRoute;
+      const hash = window.location.hash.slice(1);
+      if (!hash || hash === "home") return;
       if (hash === "main-content") {
         main.current?.focus();
         return;
       }
-      if (hash === "reviews" && initialRoute === "home") {
-        document.getElementById("reviews")?.scrollIntoView();
+      if (["reviews", "services"].includes(hash) && initialRoute === "home") {
+        document.getElementById(hash)?.scrollIntoView();
         return;
       }
       const aliases: Record<string, string> = {
+        "private-events": "events",
         references: "events",
         projects: "events",
-        services: "services",
       };
       const next = aliases[hash] || hash;
-      setRoute(next);
-      setDetailSlide(0);
-      setModal(null);
-      window.scrollTo({ top: 0, behavior: "instant" });
+      const detail = /^(event|extra)\/(.+)$/.exec(next);
+      if (detail) {
+        let slug: string;
+        try { slug = decodeURIComponent(detail[2]); } catch { return; }
+        const path = `/${detail[1] === "event" ? "events" : "extras"}/${encodeURIComponent(slug)}`;
+        if (window.location.pathname !== path) window.location.replace(`${path}?lang=${language}`);
+        return;
+      }
+      const extra = extras.find(item => item.slug === next);
+      if (extra) { window.location.replace(`/extras/${encodeURIComponent(extra.slug)}?lang=${language}`); return; }
+      if (["events", "about", "contact", "extras", "diy-kits", "privacy-policy", "reviews"].includes(next) && next !== initialRoute) {
+        window.location.replace(`/${next}?lang=${language}`);
+      }
     }
     syncRoute();
     window.addEventListener("hashchange", syncRoute);
     return () => window.removeEventListener("hashchange", syncRoute);
-  }, [initialRoute]);
+  }, [initialRoute, language, extras]);
 
   useEffect(() => {
     if (modal) {
@@ -162,20 +232,6 @@ export function ExperienceSite({
     }
     return () => document.body.classList.remove("modal-open");
   }, [modal]);
-
-  useEffect(() => {
-    const title =
-      route === "reviews" ? reviewCopy[language].title : route === "home"
-        ? "Get2Gether"
-        : route === "about"
-          ? t.aboutTitle
-          : route === "private-events"
-            ? t.privateTitle
-            : route === "contact"
-              ? t.contactTitle
-              : content.pages[route as SitePageKey]?.title || t.eventsTitle;
-    document.title = `${title}${route === "home" ? "" : " | Get2Gether"}`;
-  }, [route, t, content.pages, language]);
 
   // Advances one card while keeping both directions available around the loop.
   function moveServices(direction: number) {
@@ -196,6 +252,7 @@ export function ExperienceSite({
   const selectedText = selected ? localized(events[selectedIndex]) : { title: "", description: "" };
   const selectedExtra = extras.find(item => route === `extra/${item.slug}` || route === item.slug);
   const locale = language === "el" ? "el-GR" : "en-GB";
+  const selectedLabels = eventDetailLabels(language);
   const agendaCells = calendarCells(agendaMonth, workshops);
   const agendaTitle = new Intl.DateTimeFormat(locale, {
     month: "long",
@@ -324,7 +381,7 @@ export function ExperienceSite({
                 </button>
                 <div ref={serviceViewport} className="service-viewport" id="experience-cards">
                 <div className="service-rail">
-                  {t.serviceNames.map((name, i) => (
+                  {t.serviceNames.map((name, i) => i === 1 ? null : (
                     <a
                       key={name}
                       className="service-card"
@@ -384,14 +441,14 @@ export function ExperienceSite({
                 <div className="upcoming-events-grid">
                   {upcomingWorkshops.map(workshop => (
                     <article className="upcoming-event-card" key={workshop.slug}>
-                      <a href={`/?lang=${language}#event/${workshop.slug}`} className="workshop-image">
+                      <a href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`} className="workshop-image">
                         <Image src={workshop.images[0]} alt={localized(workshop).title} sizes="(max-width: 767px) 90vw, 40vw" />
                       </a>
                       <div className="upcoming-event-copy">
                         <time className="upcoming-event-date" dateTime={workshop.date}>{formatWorkshopDate(workshop.date)}</time>
                         <h3>{localized(workshop).title}</h3>
                         <p className="upcoming-event-time">{workshop.startTime}–{workshop.endTime}</p>
-                        <a className="button" href={`/?lang=${language}#event/${workshop.slug}`}>
+                        <a className="button" href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`}>
                           {t.details}<Arrow />
                         </a>
                       </div>
@@ -432,7 +489,20 @@ export function ExperienceSite({
                   </button>
                 </div>
               </header>
-              <div className="agenda-scroll">
+              <div
+                className="agenda-scroll"
+                onPointerDown={startAgendaSwipe}
+                onPointerMove={trackAgendaSwipe}
+                onPointerUp={finishAgendaSwipe}
+                onPointerCancel={() => { agendaGesture.current = null; }}
+                onClickCapture={event => {
+                  if (suppressAgendaClick.current && event.detail !== 0) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    suppressAgendaClick.current = false;
+                  }
+                }}
+              >
                 <div className="agenda-weekdays" aria-hidden="true">
                   {weekdayLabels.map((label) => (
                     <span key={label}>{label}</span>
@@ -444,25 +514,21 @@ export function ExperienceSite({
                       return <div className="agenda-day agenda-day-empty" key={index} />;
                     }
 
-                    const workshopIndex = workshops.findIndex(
-                      (workshop) => workshop.slug === cell.workshop?.slug,
-                    );
-                    const workshopText = workshopIndex >= 0 ? localized(events[workshopIndex]) : { title: "" };
-
-                    return cell.workshop ? (
-                      <a
-                        className={`agenda-day agenda-event${cell.date === currentDate ? " is-today" : ""}`}
-                        href={`/?lang=${language}#event/${cell.workshop.slug}`}
+                    return cell.workshops.length > 0 ? (
+                      <div
+                        className={`agenda-day agenda-day-has-events${cell.date === currentDate ? " is-today" : ""}`}
                         key={cell.date}
                         aria-current={cell.date === currentDate ? "date" : undefined}
-                        aria-label={`${formatWorkshopDate(cell.date)}: ${workshopText.title}`}
                       >
                         <time dateTime={cell.date}>{cell.day}</time>
-                        <span>{workshopText.title}</span>
-                        <small>
-                          {cell.workshop.startTime}–{cell.workshop.endTime}
-                        </small>
-                      </a>
+                        <div className="agenda-event-list">
+                          {cell.workshops.map(workshop => {
+                            const workshopIndex = workshops.findIndex(item => item.slug === workshop.slug);
+                            const workshopText = workshopIndex >= 0 ? localized(events[workshopIndex]) : { title: "" };
+                            return <a className="agenda-event" href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`} key={workshop.id} aria-label={`${formatWorkshopDate(cell.date)}: ${workshopText.title}, ${workshop.startTime}–${workshop.endTime}`}><span>{workshopText.title}</span><small>{workshop.startTime}–{workshop.endTime}</small></a>;
+                          })}
+                        </div>
+                      </div>
                     ) : (
                       <div
                         className={`agenda-day${cell.date === currentDate ? " is-today" : ""}`}
@@ -476,14 +542,14 @@ export function ExperienceSite({
                 </div>
               </div>
               <div className="agenda-mobile-events">
-                {workshops.filter(workshop => workshop.date.startsWith(agendaMonth)).sort((a, b) => `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`)).map(workshop => (
-                  <a className="agenda-event-summary" key={workshop.id} href={`/?lang=${language}#event/${workshop.slug}`}>
-                    <time dateTime={workshop.date}>{formatWorkshopDate(workshop.date)}</time>
+                {agendaCells.filter(cell => cell && cell.workshops.length > 0).map(cell => cell && <section className="agenda-mobile-day" key={cell.date}>
+                  <time dateTime={cell.date}>{formatWorkshopDate(cell.date)}</time>
+                  {cell.workshops.map(workshop => <a className="agenda-event-summary" key={workshop.id} href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`}>
                     <strong>{localized(workshop).title}</strong>
                     <span>{workshop.startTime}–{workshop.endTime}<Arrow /></span>
-                  </a>
-                ))}
-                {!workshops.some(workshop => workshop.date.startsWith(agendaMonth)) && <p>{t.calendarNoEvents}</p>}
+                  </a>)}
+                </section>)}
+                {!agendaCells.some(cell => cell && cell.workshops.length > 0) && <p>{t.calendarNoEvents}</p>}
               </div>
             </section>
             <div className="announcement">
@@ -510,13 +576,13 @@ export function ExperienceSite({
                 <div className="past-events-grid">
                   {pastWorkshops.map(workshop => (
                     <article className="past-event-card" key={workshop.slug}>
-                      <a href={`/?lang=${language}#event/${workshop.slug}`} className="workshop-image">
+                      <a href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`} className="workshop-image">
                         <Image src={workshop.images[0]} alt={localized(workshop).title} sizes="112px" />
                       </a>
                       <div className="past-event-copy">
                         <time dateTime={workshop.date}>{new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(workshopDate(workshop.date))}</time>
-                        <h3><a href={`/?lang=${language}#event/${workshop.slug}`}>{localized(workshop).title}</a></h3>
-                        <a className="text-link" href={`/?lang=${language}#event/${workshop.slug}`}>{t.details}<Arrow /></a>
+                        <h3><a href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`}>{localized(workshop).title}</a></h3>
+                        <a className="text-link" href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`}>{t.details}<Arrow /></a>
                       </div>
                     </article>
                   ))}
@@ -529,7 +595,7 @@ export function ExperienceSite({
           <section className="page-section page-width">
             <a
               className="text-link back-link"
-              href={`/?lang=${language}#events`}
+              href={`/events?lang=${language}`}
             >
               <Arrow reverse />
               {t.back}
@@ -572,6 +638,22 @@ export function ExperienceSite({
                       {selected.startTime}–{selected.endTime}
                     </dd>
                   </div>
+                  {localizedEventDetail(selected.locationEn, selected.locationEl, language) && <div>
+                    <dt>{selectedLabels.location}</dt>
+                    <dd>{localizedEventDetail(selected.locationEn, selected.locationEl, language)}</dd>
+                  </div>}
+                  {selected.priceCents !== undefined && <div>
+                    <dt>{selectedLabels.price}</dt>
+                    <dd>{selected.priceCents === 0 ? selectedLabels.free : new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(selected.priceCents / 100)}</dd>
+                  </div>}
+                  {localizedEventDetail(selected.materialsEn, selected.materialsEl, language) && <div>
+                    <dt>{selectedLabels.materials}</dt>
+                    <dd>{localizedEventDetail(selected.materialsEn, selected.materialsEl, language)}</dd>
+                  </div>}
+                  {selected.availability && <div>
+                    <dt>{selectedLabels.availability}</dt>
+                    <dd>{selectedLabels[selected.availability]}</dd>
+                  </div>}
                 </dl>
                 {selected.date < currentDate && eventAlbumUrl(selected.albumUrl) && (
                   <section className="event-album" aria-label={eventAlbumCopy[language].title}>
@@ -593,56 +675,6 @@ export function ExperienceSite({
                   </button>
                 </div>
               </div>
-            </div>
-          </section>
-        )}
-        {route === "private-events" && (
-          <section className="page-section page-width">
-            <header className="page-heading">
-              <span className="small-star" aria-hidden="true">
-                <DecorativeSun />
-              </span>
-              <h1>{t.privateTitle}</h1>
-              <p className="lead">{t.privateIntro}</p>
-              <p>{t.privateBody}</p>
-            </header>
-            <div className="private-grid">
-              <article>
-                <Image
-                  src={serviceImages[1]}
-                  alt=""
-                  sizes="(max-width: 760px) 90vw, 45vw"
-                />
-                <div>
-                  <h2>{t.customTitle}</h2>
-                  <p>{t.customBody}</p>
-                  <button
-                    className="button"
-                    onClick={() => setModal({ topic: "", detailed: true })}
-                  >
-                    {t.inquire}
-                    <Arrow />
-                  </button>
-                </div>
-              </article>
-              <article>
-                <Image
-                  src={serviceImages[0]}
-                  alt=""
-                  sizes="(max-width: 760px) 90vw, 45vw"
-                />
-                <div>
-                  <h2>{t.curatedTitle}</h2>
-                  <p>{t.curatedBody}</p>
-                  <a
-                    href={`/events?lang=${language}`}
-                    className="button button-outline"
-                  >
-                    {t.heroCta}
-                    <Arrow />
-                  </a>
-                </div>
-              </article>
             </div>
           </section>
         )}
@@ -754,9 +786,9 @@ export function ExperienceSite({
               <h1>{staticPage.title}</h1>
               <p>{staticPage.intro}</p>
             </header>
-            <div className="static-page-body">
-              <p>{staticPage.body}</p>
-              {route === "diy-kits" && diyProducts.length > 0 && <div className="diy-product-grid">{diyProducts.map((product) => <article className="diy-product-card" key={product.id}><span>{product.stockStatus === "in_stock" ? (language === "el" ? "Διαθέσιμο" : "In stock") : language === "el" ? "Σύντομα διαθέσιμο" : "Coming soon"}</span><h2>{language === "el" ? product.titleEl : product.titleEn}</h2><p>{language === "el" ? product.descriptionEl : product.descriptionEn}</p><strong>€{(product.priceCents / 100).toFixed(2)}</strong></article>)}</div>}
+            <div className={`static-page-body${route === "diy-kits" ? " diy-page-body" : ""}`}>
+              {route === "privacy-policy" ? <article className="privacy-policy-body">{staticPage.body.split(/\n\s*\n/).map((block, index) => block.startsWith("## ") ? <h2 key={index}>{block.slice(3)}</h2> : <p key={index}>{block}</p>)}</article> : <p>{staticPage.body}</p>}
+              {route === "diy-kits" && diyProducts.length > 0 && <div className="diy-product-grid">{diyProducts.map((product) => { const title = language === "el" ? product.titleEl : product.titleEn; return <article className="diy-product-card" key={product.id}>{product.imageUrl && <Image className="diy-product-image" src={product.imageUrl} alt={title} width={800} height={600} sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw" />}<div className="diy-product-card-body"><span>{diyStockLabel(product.stockStatus, language)}</span><h2>{title}</h2><p>{language === "el" ? product.descriptionEl : product.descriptionEn}</p><strong>€{(product.priceCents / 100).toFixed(2)}</strong><button type="button" className="button diy-product-cta" onClick={() => setModal({ topic: `${language === "el" ? "DIY σετ" : "DIY kit"}: ${title}`, detailed: false })}>{diyInquiryLabel(language)}<Arrow /></button></div></article>; })}</div>}
             </div>
           </section>
         )}
@@ -781,7 +813,7 @@ export function ExperienceSite({
                     <p>{localized(extra).description}</p>
                     <a
                       className="button"
-                      href={`/?lang=${language}#extra/${extra.slug}`}
+                      href={`/extras/${encodeURIComponent(extra.slug)}?lang=${language}`}
                     >
                       {t.details}
                       <Arrow />
@@ -823,7 +855,6 @@ export function ExperienceSite({
           route !== "extras" &&
           ![
             "events",
-            "private-events",
             "about",
             "contact",
             "reviews",

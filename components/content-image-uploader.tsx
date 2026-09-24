@@ -4,10 +4,17 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { IMAGE_TYPES, MAX_CONTENT_IMAGES, MAX_IMAGE_BYTES } from "@/lib/content-images";
 
-type Props = { images: string[]; disabled: boolean; onChange: (images: string[]) => void; onBusy: (busy: boolean) => void };
+type Props = {
+  images: string[];
+  disabled: boolean;
+  onChange: (images: string[]) => void;
+  onBusy: (busy: boolean) => void;
+  maxImages?: number;
+  title?: string;
+};
 
 // Adds durable images through either the native file picker or drag and drop.
-export function ContentImageUploader({ images, disabled, onChange, onBusy }: Props) {
+export function ContentImageUploader({ images, disabled, onChange, onBusy, maxImages = MAX_CONTENT_IMAGES, title = "Images" }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const previewDialog = useRef<HTMLDialogElement>(null);
   const [preview, setPreview] = useState<{ src: string; index: number } | null>(null);
@@ -20,7 +27,7 @@ export function ContentImageUploader({ images, disabled, onChange, onBusy }: Pro
   async function upload(files: File[]) {
     if (disabled || uploading.current || !files.length) return;
     setError("");
-    if (images.length + files.length > MAX_CONTENT_IMAGES) { setError("You can add up to 12 images. Remove an image before adding more."); return; }
+    if (images.length + files.length > maxImages) { setError(`You can add up to ${maxImages} image${maxImages === 1 ? "" : "s"}. Remove an image before adding more.`); return; }
     if (files.some(file => !IMAGE_TYPES.includes(file.type) || file.size === 0 || file.size > MAX_IMAGE_BYTES)) { setError("Choose JPG, PNG or WebP images, each smaller than 3 MB."); return; }
     uploading.current = true;
     onBusy(true);
@@ -51,15 +58,15 @@ export function ContentImageUploader({ images, disabled, onChange, onBusy }: Pro
     previewDialog.current?.showModal();
   }
 
-  return <section className="admin-image-uploader" aria-label="Images">
-    <div className="admin-image-heading"><strong>Images</strong><span>{images.length} / {MAX_CONTENT_IMAGES}</span></div>
+  return <section className="admin-image-uploader" aria-label={title}>
+    <div className="admin-image-heading"><strong>{title}</strong><span>{images.length} / {maxImages}</span></div>
     <div className={`admin-image-dropzone${dragging ? " is-dragging" : ""}`} onDragOver={e => { e.preventDefault(); if (!disabled) setDragging(true); }} onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false); }} onDrop={e => { e.preventDefault(); setDragging(false); void upload(Array.from(e.dataTransfer.files)); }}>
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5" /></svg>
       <strong>Drag your images here</strong>
       <span>or choose files from your computer or phone</span>
-      <button type="button" className="admin-secondary-action" disabled={disabled || images.length >= MAX_CONTENT_IMAGES} onClick={() => input.current?.click()}>Choose images</button>
+      <button type="button" className="admin-secondary-action" disabled={disabled || images.length >= maxImages} onClick={() => input.current?.click()}>Choose images</button>
       <input ref={input} hidden aria-label="Choose image files" type="file" multiple accept="image/jpeg,image/png,image/webp" disabled={disabled} onChange={e => { const files = Array.from(e.target.files ?? []); e.target.value = ""; void upload(files); }} />
-      <small>JPG, PNG or WebP · max. 3 MB per image · first image is the cover</small>
+      <small>JPG, PNG or WebP · max. 3 MB per image{maxImages > 1 ? " · first image is the cover" : ""}</small>
     </div>
     {status && <p role="status">{status}</p>}
     {error && <p role="alert" className="admin-upload-error">{error}</p>}

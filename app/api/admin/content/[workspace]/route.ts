@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { isAdmin } from "@/lib/admin-auth";
 import { getProductSql } from "@/lib/diy-products";
-import { getManagedContent, type Workspace } from "@/lib/managed-content";
+import { getManagedContent, type EventAvailability, type Workspace } from "@/lib/managed-content";
 import { isContentImage, MAX_CONTENT_IMAGES } from "@/lib/content-images";
 
 import { eventAlbumUrl } from "@/lib/event-album";
@@ -24,11 +24,23 @@ function validate(input: Record<string, unknown>, workspace: Workspace) {
   if (workspace === "events") {
     if (typeof input.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !Number.isFinite(Date.parse(input.date)) || new Date(input.date).toISOString().slice(0, 10) !== input.date) return null;
     if (![input.startTime, input.endTime].every(time => typeof time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)) || String(input.endTime) <= String(input.startTime)) return null;
+    for (const field of ["locationEn", "locationEl", "materialsEn", "materialsEl"] as const) {
+      const optional = field.endsWith("En");
+      if (typeof input[field] !== "string" || (!optional && !input[field].trim()) || input[field].length > 1000) return null;
+    }
+    if (!Number.isSafeInteger(input.priceCents) || Number(input.priceCents) < 0) return null;
+    if (!["available", "limited", "sold_out"].includes(String(input.availability))) return null;
   }
   return {
     titleEn: String(input.titleEn).trim(), titleEl: String(input.titleEl).trim(),
     descriptionEn: String(input.descriptionEn).trim(), descriptionEl: String(input.descriptionEl).trim(),
-    ...(workspace === "events" ? { albumUrl } : {}),
+    ...(workspace === "events" ? {
+      albumUrl,
+      locationEn: String(input.locationEn).trim(), locationEl: String(input.locationEl).trim(),
+      priceCents: Number(input.priceCents),
+      materialsEn: String(input.materialsEn).trim(), materialsEl: String(input.materialsEl).trim(),
+      availability: input.availability as EventAvailability,
+    } : {}),
     images: input.images, date: workspace === "events" ? input.date : "",
     startTime: workspace === "events" ? input.startTime : "", endTime: workspace === "events" ? input.endTime : "",
   };
@@ -43,7 +55,7 @@ async function save(request: Request, context: Context, editing: boolean) {
   const input = await request.json().catch(() => null);
   if (!input || typeof input !== "object") return Response.json({ error: "Invalid content" }, { status: 400 });
   const content = validate(input, workspace);
-  if (!content || (editing && (typeof input.id !== "string" || !/^[0-9a-f-]{36}$/i.test(input.id)))) return Response.json({ error: workspace === "events" ? "Check the Greek title and description, slug, at least one image and event date/time, and a valid http(s) photo album link. English is optional." : "Check both languages, the slug and at least one image." }, { status: 400 });
+  if (!content || (editing && (typeof input.id !== "string" || !/^[0-9a-f-]{36}$/i.test(input.id)))) return Response.json({ error: workspace === "events" ? "Check the Greek event information, title and description, slug, at least one image, date/time, and a valid http(s) photo album link. English is optional." : "Check both languages, the slug and at least one image." }, { status: 400 });
   const sql = getProductSql();
   if (!sql) return Response.json({ error: "Content database is not configured" }, { status: 503 });
   const table = workspace === "events" ? "site_events" : "site_extras";

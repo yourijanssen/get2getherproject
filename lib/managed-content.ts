@@ -1,6 +1,7 @@
 import { getProductSql } from "@/lib/diy-products";
 
 export type Workspace = "events" | "extras";
+export type EventAvailability = "available" | "limited" | "sold_out";
 export type ContentRecord = {
   id: string;
   slug: string;
@@ -13,6 +14,12 @@ export type ContentRecord = {
   date: string;
   startTime: string;
   endTime: string;
+  locationEn?: string;
+  locationEl?: string;
+  priceCents?: number;
+  materialsEn?: string;
+  materialsEl?: string;
+  availability?: EventAvailability;
   isActive: boolean;
   sortOrder: number;
 };
