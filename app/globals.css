@@ -683,7 +683,7 @@ p {
 .agenda-weekdays,
 .agenda-grid {
   display: grid;
-  min-width: 640px;
+  min-width: 0;
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .agenda-weekdays {
@@ -2658,3 +2658,48 @@ html[lang="el"] body { --heading: var(--font-greek-serif), Georgia, serif; }
 .event-album p { margin: 14px 0 0; font-size: 13px; }
 .event-album .button { max-width: 100%; white-space: normal; }
 .admin-album-help { color: var(--admin-muted); font-size: 12px; font-weight: 400; }
+
+/* Mobile-first calendar using Bootstrap 5's sm, md and lg breakpoint standards. */
+.agenda-header { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px 16px; }
+.agenda-header > div { min-width: 0; }
+.agenda-header h2 { font-size: clamp(24px, 5vw, 34px); overflow-wrap: anywhere; }
+.agenda-header p { max-width: none; }
+.agenda-controls { justify-content: flex-end; }
+.agenda-controls button { width: 44px; height: 44px; }
+.agenda-controls .agenda-today { margin-right: auto; }
+.agenda-scroll { overflow: visible; }
+.agenda-weekdays span { padding: 10px 2px; text-align: center; font-size: 11px; }
+.agenda-day { min-width: 0; min-height: 52px; align-items: center; justify-content: center; gap: 4px; padding: 5px 2px; }
+.agenda-day time { align-self: center; display: grid; place-items: center; width: 28px; height: 28px; }
+.agenda-event span, .agenda-event small { display: none; }
+.agenda-event::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.agenda-event:focus-visible { outline-offset: -3px; }
+.agenda-mobile-events { padding: 16px; border-top: 1px solid var(--agenda-line); }
+.agenda-mobile-events > p { font-size: 14px; margin: 0; }
+.agenda-event-summary { display: grid; gap: 8px; padding: 16px; background: #f7faff; border: 1px solid var(--agenda-line); border-radius: 8px; overflow-wrap: anywhere; }
+.agenda-event-summary + .agenda-event-summary { margin-top: 12px; }
+.agenda-event-summary time { font-size: 12px; }
+.agenda-event-summary strong { font-size: 17px; }
+.agenda-event-summary > span { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+@media (min-width: 576px) {
+  .agenda-header { padding: 24px; }
+  .agenda-day { min-height: 64px; }
+  .agenda-mobile-events { padding: 24px; }
+}
+@media (min-width: 768px) {
+  .agenda-day { min-height: 76px; }
+}
+@media (min-width: 992px) {
+  .agenda-day { min-height: 112px; padding: 8px; align-items: flex-start; justify-content: flex-start; }
+  .agenda-day time { align-self: flex-end; }
+  .agenda-weekdays span { padding: 10px; text-align: right; }
+  .agenda-event span, .agenda-event small { display: block; overflow-wrap: anywhere; }
+  .agenda-event::after { display: none; }
+  .agenda-mobile-events { display: none; }
+}
+@media (min-width: 992px) {
+  .agenda-header { flex-direction: row; align-items: center; gap: 28px; padding: 26px 30px; }
+  .agenda-header h2 { font-size: clamp(28px, 3.5vw, 42px); }
+  .agenda-controls .agenda-today { margin-right: 0; }
+  .agenda-day { min-height: 116px; padding: 10px; }
+}

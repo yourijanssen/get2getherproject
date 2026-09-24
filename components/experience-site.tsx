@@ -404,7 +404,7 @@ export function ExperienceSite({
               <header className="agenda-header">
                 <div>
                   <span className="small-label">{t.calendarTitle}</span>
-                  <h2 id="agenda-heading">{agendaTitle}</h2>
+                  <h2 id="agenda-heading" aria-live="polite">{agendaTitle}</h2>
                   <p>{t.calendarIntro}</p>
                 </div>
                 <div className="agenda-controls">
@@ -474,6 +474,16 @@ export function ExperienceSite({
                     );
                   })}
                 </div>
+              </div>
+              <div className="agenda-mobile-events">
+                {workshops.filter(workshop => workshop.date.startsWith(agendaMonth)).sort((a, b) => `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`)).map(workshop => (
+                  <a className="agenda-event-summary" key={workshop.id} href={`/?lang=${language}#event/${workshop.slug}`}>
+                    <time dateTime={workshop.date}>{formatWorkshopDate(workshop.date)}</time>
+                    <strong>{localized(workshop).title}</strong>
+                    <span>{workshop.startTime}–{workshop.endTime}<Arrow /></span>
+                  </a>
+                ))}
+                {!workshops.some(workshop => workshop.date.startsWith(agendaMonth)) && <p>{t.calendarNoEvents}</p>}
               </div>
             </section>
             <div className="announcement">
