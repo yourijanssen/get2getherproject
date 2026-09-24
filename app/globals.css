@@ -815,9 +815,26 @@ p {
   margin-bottom: 24px;
 }
 .upcoming-events-grid {
-  display: grid;
-  gap: 28px;
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  padding-bottom: 12px;
 }
+.upcoming-events-grid > .upcoming-event-card { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+.upcoming-events-grid:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
+.upcoming-carousel-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.upcoming-carousel-toolbar p { margin: 0; color: var(--muted); font-size: 13px; }
+.upcoming-carousel-controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.upcoming-carousel-controls span { min-width: 45px; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; }
+.upcoming-carousel-controls button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--text); cursor: pointer; font-size: 22px; }
+.upcoming-carousel-controls button:disabled { opacity: .35; cursor: default; }
+.upcoming-carousel-controls button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.upcoming-event-position { display: inline-block; padding: 4px 10px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 20px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+@media(max-width:480px) { .upcoming-carousel-toolbar { align-items: flex-start; flex-direction: column; } }
 .upcoming-event-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);

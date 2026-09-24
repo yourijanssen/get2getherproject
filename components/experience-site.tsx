@@ -5,6 +5,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { reviewCopy } from "@/lib/review-copy";
 import { SiteHeader } from "@/components/site-header";
+import { UpcomingEventsCarousel } from "@/components/upcoming-events-carousel";
 import { Arrow, ExperienceForm } from "@/components/experience-form";
 import type { SitePageKey } from "@/lib/page-content";
 import type { Language } from "@/lib/language";
@@ -438,13 +439,14 @@ export function ExperienceSite({
             <section className="upcoming-events" aria-labelledby="upcoming-events-heading">
               <h2 id="upcoming-events-heading">{t.upcomingEventsTitle}</h2>
               {upcomingWorkshops.length ? (
-                <div className="upcoming-events-grid">
-                  {upcomingWorkshops.map(workshop => (
+                <UpcomingEventsCarousel language={language}>
+                  {upcomingWorkshops.map((workshop, index) => (
                     <article className="upcoming-event-card" key={workshop.slug}>
                       <a href={`/events/${encodeURIComponent(workshop.slug)}?lang=${language}`} className="workshop-image">
                         <Image src={workshop.images[0]} alt={localized(workshop).title} sizes="(max-width: 767px) 90vw, 40vw" />
                       </a>
                       <div className="upcoming-event-copy">
+                        {upcomingWorkshops.length > 1 && <span className="upcoming-event-position">{index + 1} / {upcomingWorkshops.length}</span>}
                         <time className="upcoming-event-date" dateTime={workshop.date}>{formatWorkshopDate(workshop.date)}</time>
                         <h3>{localized(workshop).title}</h3>
                         <p className="upcoming-event-time">{workshop.startTime}–{workshop.endTime}</p>
@@ -454,7 +456,7 @@ export function ExperienceSite({
                       </div>
                     </article>
                   ))}
-                </div>
+                </UpcomingEventsCarousel>
               ) : <p className="upcoming-events-empty">{t.noUpcomingEvents}</p>}
             </section>
             <section className="agenda" aria-labelledby="agenda-heading">
