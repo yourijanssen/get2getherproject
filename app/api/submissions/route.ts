@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     ) ||
     !name ||
     name.length > 120 ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+    ((kind === "inquiry" || email !== "") && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
     email.length > 254 ||
     message.length < 10 ||
     message.length > 5000 ||
@@ -104,13 +104,14 @@ export async function POST(request: Request) {
     const sql = getProductSql();
     if (!sql) return Response.json({ error: "Storage unavailable" }, { status: 503 });
     try {
-      // Serialize submissions per email so concurrent requests cannot bypass the hourly limit.
+      // Reviews without email use a normalized name bucket instead of sharing one empty-email limit.
+      const rateKey = email || `review-name:${name.toLowerCase()}`;
       const results = await sql.transaction([
-        sql`SELECT pg_advisory_xact_lock(hashtext(${email}))`,
-        sql`SELECT id FROM site_reviews WHERE id = ${submissionId}::uuid AND email = ${email}`,
+        sql`SELECT pg_advisory_xact_lock(hashtext(${rateKey}))`,
+        sql`SELECT id FROM site_reviews WHERE id = ${submissionId}::uuid AND email = ${email} AND name = ${name}`,
         sql`INSERT INTO site_reviews (id, language, name, email, message, rating)
           SELECT ${submissionId}::uuid, ${String(language)}, ${name}, ${email}, ${message}, ${Number(rating)}
-          WHERE (SELECT count(*) FROM site_reviews WHERE email = ${email} AND created_at > now() - interval '1 hour') < 5
+          WHERE (SELECT count(*) FROM site_reviews WHERE email = ${email} AND (${email} <> '' OR lower(name) = ${name.toLowerCase()}) AND created_at > now() - interval '1 hour') < 5
           ON CONFLICT (id) DO NOTHING RETURNING id`,
       ]);
       if (results[1].length || results[2].length) return Response.json({ saved: true }, { status: results[2].length ? 201 : 200 });

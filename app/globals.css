@@ -2767,3 +2767,6 @@ html[lang="el"] body { --heading: var(--font-greek-serif), Georgia, serif; }
 .diy-product-grid { grid-template-columns: 1fr; }
 @media (min-width: 768px) { .diy-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 992px) { .diy-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.contact-activity { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 20px; overflow-wrap: anywhere; }
+.inquiry-card details > summary { cursor: pointer; padding-block: 16px; }

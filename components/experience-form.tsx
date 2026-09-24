@@ -77,13 +77,13 @@ export function ExperienceForm({
             />
           </label>
           <label htmlFor={`${id}-email`}>
-            {t.email}
+            {t.email}{kind === "review" && (language === "el" ? " (προαιρετικό)" : " (optional)")}
             <input
               id={`${id}-email`}
               name="email"
               type="email"
               autoComplete="email"
-              required
+              required={kind === "inquiry"}
               maxLength={254}
             />
           </label>

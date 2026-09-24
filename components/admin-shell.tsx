@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { AdminLogout } from "@/components/admin-logout";
 
 type AdminShellProps = {
-  active: "dashboard" | "diy-products" | "events" | "extras" | "site-content" | "reviews" | "inquiries";
+  active: "dashboard" | "diy-products" | "events" | "extras" | "site-content" | "reviews" | "inquiries" | "contacts";
   children: ReactNode;
   productCount: number;
 };
@@ -15,6 +15,7 @@ export function AdminShell({ active, children, productCount }: AdminShellProps) 
       <Link className="admin-brand" href="/admin">Get2Gether<span>Manager</span></Link>
       <p className="admin-sidebar-label">Workspace</p>
       <nav>
+        <Link href="/admin/contacts" className={`admin-nav-item${active === "contacts" ? " admin-nav-item-active" : ""}`}>Contacts</Link>
         <Link href="/admin/inquiries" className={`admin-nav-item${active === "inquiries" ? " admin-nav-item-active" : ""}`}>Inquiry inbox</Link>
         <Link href="/admin" className={`admin-nav-item${active === "dashboard" ? " admin-nav-item-active" : ""}`}>Dashboard</Link>
         <Link href="/admin/site-content" className={`admin-nav-item${active === "site-content" ? " admin-nav-item-active" : ""}`}>Pages & text</Link>
