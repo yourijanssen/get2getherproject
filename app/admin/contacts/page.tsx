@@ -35,7 +35,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
   `.catch(() => { unavailable = true; return []; }) : [];
   return <AdminShell active="contacts" productCount={(await getDiyProducts(true)).length}>
     <header className="admin-dashboard-intro"><h1>Contacts</h1><p>Contact details and complete submission history from reviews and inquiries. Matching email addresses are grouped; reviews without email remain separate.</p><p>Marketing permission: not recorded. This list is not a mailing subscription list.</p></header>
-    <form method="get" className="inquiry-status-form"><label>Search name, email or phone<input name="q" defaultValue={q} maxLength={120} /></label><button className="admin-primary-action">Search</button></form>
+    <form method="get" className="contacts-search" role="search"><label>Search name, email or phone<input type="search" placeholder="Name, email or phone" name="q" defaultValue={q} maxLength={120} /></label><button className="admin-primary-action">Search</button></form>
     {unavailable ? <p role="alert">Contact storage is unavailable. Please try again later.</p> : <>
       {!rows.length && <p>No contacts found.</p>}
       <div className="inquiry-list">{(rows.slice(0, 20) as Contact[]).map(contact => <article className="inquiry-card" key={contact.contact_key}>

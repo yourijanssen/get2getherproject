@@ -2770,3 +2770,10 @@ html[lang="el"] body { --heading: var(--font-greek-serif), Georgia, serif; }
 
 .contact-activity { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 20px; overflow-wrap: anywhere; }
 .inquiry-card details > summary { cursor: pointer; padding-block: 16px; }
+
+/* Keep the contact search visible and separate from its results. */
+.contacts-search { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; margin: 24px 0 28px; }
+.contacts-search label { display: grid; gap: 8px; flex: 1 1 280px; max-width: 560px; min-width: 0; font-size: 13px; font-weight: 600; }
+.contacts-search input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #b8c0cc; border-radius: 6px; background: var(--admin-card); color: var(--admin-ink); font: inherit; }
+.contacts-search input:focus-visible { outline: 2px solid #a16207; outline-offset: 2px; }
+.contacts-search button { min-height: 44px; }
