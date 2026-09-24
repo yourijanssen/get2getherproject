@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 type AdminShellProps = {
-  active: "dashboard" | "diy-products" | "events" | "extras" | "site-content";
+  active: "dashboard" | "diy-products" | "events" | "extras" | "site-content" | "reviews";
   children: ReactNode;
   productCount: number;
 };
@@ -19,6 +19,7 @@ export function AdminShell({ active, children, productCount }: AdminShellProps) 
         <Link href="/admin/events" className={`admin-nav-item${active === "events" ? " admin-nav-item-active" : ""}`}>Event listings</Link>
         <Link href="/admin/diy-products" className={`admin-nav-item${active === "diy-products" ? " admin-nav-item-active" : ""}`}>DIY products <b>{productCount}</b></Link>
         <Link href="/admin/extras" className={`admin-nav-item${active === "extras" ? " admin-nav-item-active" : ""}`}>Extra offerings</Link>
+        <Link href="/admin/reviews" className={`admin-nav-item${active === "reviews" ? " admin-nav-item-active" : ""}`}>Reviews</Link>
       </nav>
       <div className="admin-sidebar-bottom"><Link href="/?lang=en" className="admin-nav-item">View site</Link><p>Signed in as<br /><strong>manager</strong></p></div>
     </aside>

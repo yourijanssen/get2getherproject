@@ -1,5 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { existsSync } from "node:fs";
+import { getProductSql } from "@/lib/diy-products";
 
 export const runtime = "nodejs";
 
@@ -100,6 +101,25 @@ export async function POST(request: Request) {
     (details.activity && details.activity !== "yes")
   ) {
     return Response.json({ error: "Invalid details" }, { status: 400 });
+  }
+  if (kind === "review") {
+    const sql = getProductSql();
+    if (!sql) return Response.json({ error: "Storage unavailable" }, { status: 503 });
+    try {
+      // Serialize submissions per email so concurrent requests cannot bypass the hourly limit.
+      const results = await sql.transaction([
+        sql`SELECT pg_advisory_xact_lock(hashtext(${email}))`,
+        sql`SELECT id FROM site_reviews WHERE id = ${submissionId}::uuid AND email = ${email}`,
+        sql`INSERT INTO site_reviews (id, language, name, email, message, rating)
+          SELECT ${submissionId}::uuid, ${String(language)}, ${name}, ${email}, ${message}, ${Number(rating)}
+          WHERE (SELECT count(*) FROM site_reviews WHERE email = ${email} AND created_at > now() - interval '1 hour') < 5
+          ON CONFLICT (id) DO NOTHING RETURNING id`,
+      ]);
+      if (results[1].length || results[2].length) return Response.json({ saved: true }, { status: results[2].length ? 201 : 200 });
+      return Response.json({ error: "Please try again later" }, { status: 429 });
+    } catch {
+      return Response.json({ error: "Storage unavailable" }, { status: 503 });
+    }
   }
   const databasePath =
     process.env.GET2GETHER_DATABASE_PATH || "./data/get2gether.sqlite";

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/TransferNow-20260526jAAIYA6v/Logo-transparent-cropped.png";
 import type { Language } from "@/lib/language";
@@ -24,7 +25,9 @@ export function SiteHeader({
   const secondaryItems = content.navItems.filter(({ href }) =>
     ["/extras", "/about", "/contact"].includes(href),
   );
-  const currentPath = route === "home" ? "/" : `/${route}`;
+  // Keep hash-based detail views on their existing page when switching languages.
+  const currentPath = usePathname();
+  const currentHash = route === "home" || route !== currentPath.slice(1) ? `#${route}` : "";
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
@@ -111,7 +114,7 @@ export function SiteHeader({
         </div>
         <div className="language-switch" aria-label={content.languageLabel}>
           <a
-            href={`${currentPath}?lang=el${route === "home" ? "#home" : ""}`}
+            href={`${currentPath}?lang=el${currentHash}`}
             className={language === "el" ? "is-active" : undefined}
             aria-current={language === "el" ? "true" : undefined}
             onClick={() => setOpen(false)}
@@ -119,7 +122,7 @@ export function SiteHeader({
             ελ
           </a>
           <a
-            href={`${currentPath}?lang=en${route === "home" ? "#home" : ""}`}
+            href={`${currentPath}?lang=en${currentHash}`}
             className={language === "en" ? "is-active" : undefined}
             aria-current={language === "en" ? "true" : undefined}
             onClick={() => setOpen(false)}

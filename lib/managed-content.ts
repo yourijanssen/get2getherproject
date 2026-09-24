@@ -9,6 +9,7 @@ export type ContentRecord = {
   descriptionEn: string;
   descriptionEl: string;
   images: string[];
+  albumUrl?: string;
   date: string;
   startTime: string;
   endTime: string;

@@ -84,7 +84,7 @@ export function SiteContentAdmin({ record, productCount }: { record: SiteContent
       <section className="admin-form-card site-copy-editor">
         <header className="admin-form-heading"><h2>{selected.label}</h2><p>{selected.description}</p><div className="site-copy-preview">{(["el", "en"] as const).map(language => {
           const [path, hash] = selected.href.split("#");
-          return <a key={language} href={`${path}?lang=${language}${hash ? `#${hash}` : ""}`} target="_blank" rel="noreferrer">View {language === "el" ? "Greek" : "English"} page ↗</a>;
+          return <a key={language} href={`${path}?lang=${language}${hash ? `#${hash}` : ""}`} target="_blank" rel="noreferrer">View {language === "el" ? "Greek" : "English"} page <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" style={{ display: "inline-block", verticalAlign: "middle" }}><path d="M7 17 17 7M7 7h10v10" /></svg></a>;
         })}</div></header>
         {relatedWorkspace && <div className="admin-form-heading"><a href={relatedWorkspace.href}>{relatedWorkspace.label}</a><p>{relatedWorkspace.detail}</p></div>}
         <form className="admin-product-form" onSubmit={save}>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Inter, Noto_Serif } from "next/font/google";
+import { Instrument_Serif, Fraunces, Literata } from "next/font/google";
 import "./globals.css";
 
 const instrument = Instrument_Serif({
@@ -9,15 +9,17 @@ const instrument = Instrument_Serif({
   variable: "--font-instrument",
   display: "swap",
 });
-const inter = Inter({
-  subsets: ["latin", "greek"],
-  variable: "--font-inter",
+const brand = Fraunces({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT", "WONK"],
+  variable: "--font-brand",
   display: "swap",
 });
-const greekSerif = Noto_Serif({
-  subsets: ["greek"],
-  weight: "400",
+const greekSerif = Literata({
+  subsets: ["greek", "greek-ext", "latin"],
   style: ["normal", "italic"],
+  axes: ["opsz"],
   variable: "--font-greek-serif",
   display: "swap",
 });
@@ -33,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="el"
-      className={`${instrument.variable} ${inter.variable} ${greekSerif.variable}`}
+      className={`${instrument.variable} ${brand.variable} ${greekSerif.variable}`}
     >
       <body>{children}</body>
     </html>

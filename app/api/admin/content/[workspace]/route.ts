@@ -4,18 +4,23 @@ import { getProductSql } from "@/lib/diy-products";
 import { getManagedContent, type Workspace } from "@/lib/managed-content";
 import { isContentImage, MAX_CONTENT_IMAGES } from "@/lib/content-images";
 
+import { eventAlbumUrl } from "@/lib/event-album";
+
 export const runtime = "nodejs";
 type Context = { params: Promise<{ workspace: string }> };
 
-// Validates bilingual content, local artwork paths and calendar values before saving.
+// Requires Greek event copy while allowing the English translation to remain empty.
 function validate(input: Record<string, unknown>, workspace: Workspace) {
   const fields = ["titleEn", "titleEl", "descriptionEn", "descriptionEl"] as const;
   for (const field of fields) {
-    if (typeof input[field] !== "string" || !input[field].trim() || input[field].length > (field.startsWith("title") ? 120 : 5000)) return null;
+    const optional = workspace === "events" && field.endsWith("En");
+    if (typeof input[field] !== "string" || (!optional && !input[field].trim()) || input[field].length > (field.startsWith("title") ? 120 : 5000)) return null;
   }
   if (typeof input.slug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || input.slug.length > 80) return null;
   if (!Array.isArray(input.images) || input.images.length < 1 || input.images.length > MAX_CONTENT_IMAGES || !input.images.every(isContentImage)) return null;
   if (typeof input.isActive !== "boolean" || !Number.isSafeInteger(input.sortOrder)) return null;
+  const albumUrl = input.albumUrl == null || input.albumUrl === "" ? "" : eventAlbumUrl(input.albumUrl);
+  if (workspace === "events" && albumUrl === null) return null;
   if (workspace === "events") {
     if (typeof input.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !Number.isFinite(Date.parse(input.date)) || new Date(input.date).toISOString().slice(0, 10) !== input.date) return null;
     if (![input.startTime, input.endTime].every(time => typeof time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(time)) || String(input.endTime) <= String(input.startTime)) return null;
@@ -23,6 +28,7 @@ function validate(input: Record<string, unknown>, workspace: Workspace) {
   return {
     titleEn: String(input.titleEn).trim(), titleEl: String(input.titleEl).trim(),
     descriptionEn: String(input.descriptionEn).trim(), descriptionEl: String(input.descriptionEl).trim(),
+    ...(workspace === "events" ? { albumUrl } : {}),
     images: input.images, date: workspace === "events" ? input.date : "",
     startTime: workspace === "events" ? input.startTime : "", endTime: workspace === "events" ? input.endTime : "",
   };
@@ -37,7 +43,7 @@ async function save(request: Request, context: Context, editing: boolean) {
   const input = await request.json().catch(() => null);
   if (!input || typeof input !== "object") return Response.json({ error: "Invalid content" }, { status: 400 });
   const content = validate(input, workspace);
-  if (!content || (editing && (typeof input.id !== "string" || !/^[0-9a-f-]{36}$/i.test(input.id)))) return Response.json({ error: "Check both languages, the slug, at least one image and event date/time." }, { status: 400 });
+  if (!content || (editing && (typeof input.id !== "string" || !/^[0-9a-f-]{36}$/i.test(input.id)))) return Response.json({ error: workspace === "events" ? "Check the Greek title and description, slug, at least one image and event date/time, and a valid http(s) photo album link. English is optional." : "Check both languages, the slug and at least one image." }, { status: 400 });
   const sql = getProductSql();
   if (!sql) return Response.json({ error: "Content database is not configured" }, { status: 503 });
   const table = workspace === "events" ? "site_events" : "site_extras";

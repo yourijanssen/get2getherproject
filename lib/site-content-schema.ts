@@ -23,7 +23,7 @@ export type ContentSection = typeof contentSections[number]["id"];
 const groups: Partial<Record<ContentSection, string[]>> = {
   home: ["metaDescription", "heading", "headingAccent", "intro", "heroCta", "storyCta", "services", "servicesIntro", "serviceNames", "serviceDescriptions", "togetherTitle", "togetherBody"],
   about: ["aboutTitle", "aboutLead", "aboutParagraphs"],
-  events: ["eventsTitle", "eventsIntro", "calendarTitle", "calendarIntro", "calendarToday", "calendarPreviousMonth", "calendarNextMonth", "calendarDate", "calendarTime", "calendarNoEvents", "past", "back", "upcoming", "upcomingBody", "interest", "archiveNote", "notFound"],
+  events: ["eventsTitle", "eventsIntro", "upcomingEventsTitle", "pastEventsTitle", "pastEventsIntro", "noUpcomingEvents", "calendarTitle", "calendarIntro", "calendarToday", "calendarPreviousMonth", "calendarNextMonth", "calendarDate", "calendarTime", "calendarNoEvents", "past", "back", "upcoming", "upcomingBody", "interest", "archiveNote", "notFound"],
   private: ["privateTitle", "privateIntro", "privateBody", "customTitle", "customBody", "curatedTitle", "curatedBody"],
   extras: ["linktreeTitle", "linktreeIntro", "linktreeLinks"],
   contact: ["contactTitle", "contactBody", "contactEmail", "contactPhone"],
