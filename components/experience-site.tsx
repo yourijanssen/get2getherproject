@@ -4,6 +4,7 @@ import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { reviewCopy } from "@/lib/review-copy";
+import { NotFoundContent } from "@/components/not-found-content";
 import { SiteHeader } from "@/components/site-header";
 import { UpcomingEventsCarousel } from "@/components/upcoming-events-carousel";
 import { Arrow, ExperienceForm } from "@/components/experience-form";
@@ -861,12 +862,7 @@ export function ExperienceSite({
             "contact",
             "reviews",
           ].includes(route) && (
-            <section className="page-section page-width">
-              <h1>{t.notFound}</h1>
-              <a href={`/events?lang=${language}`} className="button">
-                {t.back}
-              </a>
-            </section>
+            <NotFoundContent language={language} />
           )}
       </main>
       <footer className="site-footer">

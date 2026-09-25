@@ -2777,3 +2777,14 @@ html[lang="el"] body { --heading: var(--font-greek-serif), Georgia, serif; }
 .contacts-search input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #b8c0cc; border-radius: 6px; background: var(--admin-card); color: var(--admin-ink); font: inherit; }
 .contacts-search input:focus-visible { outline: 2px solid #a16207; outline-offset: 2px; }
 .contacts-search button { min-height: 44px; }
+
+/* Branded recovery page with readable spacing on small screens. */
+.not-found-page { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-block: clamp(48px, 8vw, 100px); }
+.not-found-code { position: relative; margin: 0 0 24px; font-family: var(--heading); font-size: clamp(100px, 18vw, 220px); line-height: 1; color: var(--text); letter-spacing: .02em; }
+.not-found-code span { position: absolute; right: -.35em; top: -.1em; color: #8499db; font-size: .35em; }
+.not-found-page h1 { max-width: 850px; font-size: clamp(30px, 4.5vw, 56px); line-height: 1.2; margin: 0 0 24px; }
+.not-found-description { max-width: 590px; margin: 0 0 32px; color: var(--muted); line-height: 1.7; }
+.not-found-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.not-found-footer { padding: 28px 20px; text-align: center; border-top: 1px solid var(--line); }
+.not-found-footer a { font-weight: 600; }
+.not-found-footer p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
